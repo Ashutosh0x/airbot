@@ -1,0 +1,15 @@
+; hello.airasm — Minimal "Hello" EIU
+; Outputs a sequence of values to demonstrate basic execution.
+;
+; This is the simplest possible Airbot program:
+; Load values into registers and emit them.
+
+.fuel 50
+
+    LDI R0, 72       ; 'H' = 72
+    EMIT R0
+    LDI R0, 73       ; 'I' = 73
+    EMIT R0
+    LDI R0, 33       ; '!' = 33
+    EMIT R0
+    HALT

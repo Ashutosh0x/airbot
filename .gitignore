@@ -1,0 +1,27 @@
+# Build artifacts
+build/
+*.o
+*.exe
+*.out
+*.obj
+
+# Debug files
+*.dSYM/
+*.pdb
+*.ilk
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.log
+
+# Third-party tools
+tools/tcc/

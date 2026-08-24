@@ -1,0 +1,21 @@
+; counter.airasm — State-evolving counter EIU
+; Demonstrates H2 (State Evolution): U_{t+1} = F(U_t, E_t)
+;
+; Each execution:
+;   1. Loads counter from memory address 0
+;   2. Increments it
+;   3. Stores it back
+;   4. Emits the value
+;   5. Halts
+;
+; When run repeatedly (airbot evolve), the state evolves:
+; U_0(counter=0) → U_1(counter=1) → U_2(counter=2) → ...
+
+.fuel 100
+
+    LDI R7, 0          ; R7 = address of state (memory[0])
+    LOAD R0, R7         ; R0 = mem[R7] (load current counter)
+    ADDI R0, 1          ; R0 += 1 (increment)
+    STORE R0, R7        ; mem[R7] = R0 (store back)
+    EMIT R0             ; output current value
+    HALT

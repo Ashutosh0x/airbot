@@ -1,0 +1,27 @@
+; quine.airasm — Self-reading EIU (uses SELF opcode)
+; Demonstrates Section 15: Self-Reference
+;
+; The EIU reads its own bytecode using the SELF opcode
+; and emits each byte. This is the computational equivalent
+; of a quine — a program that outputs its own source.
+;
+; Requires: CAP_SELF_READ capability
+
+.fuel 200
+.cap SELF_READ
+
+    LDI R0, 0          ; R0 = bytecode offset (start at 0)
+    LDI R1, 20         ; R1 = number of bytes to read
+    LDI R2, 0          ; R2 = loop counter
+
+loop:
+    SELF R3, 0          ; R3 = bytecode[R0] (read own byte)
+    EMIT R3             ; output the byte
+    ADDI R0, 1          ; next byte
+    ADDI R2, 1          ; counter++
+    CMP R2, R1          ; compare counter vs limit
+    JZ done             ; if equal, done
+    JMP loop            ; continue
+
+done:
+    HALT
