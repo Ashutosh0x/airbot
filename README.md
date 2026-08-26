@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛸 Airbot
+# Airbot
 
 ### Executable Information System
 
@@ -17,17 +17,17 @@
 
 <br>
 
-[Getting Started](#-getting-started) •
-[Architecture](#-architecture) •
-[Usage](#-usage) •
-[Examples](#-example-program) •
-[Documentation](#-documentation)
+[Getting Started](#getting-started) •
+[Architecture](#architecture) •
+[Usage](#usage) •
+[Examples](#example-program) •
+[Documentation](#documentation)
 
 </div>
 
 ---
 
-## 🧰 Tech Stack
+## Tech Stack
 
 <div align="center">
 
@@ -82,7 +82,7 @@
 
 ---
 
-## 📖 What is Airbot?
+## What is Airbot?
 
 Airbot implements a **network architecture** in which **mobile, stateful computational objects** replace passive packets. Instead of asking *"where is the destination IP?"*, the network asks *"what is this authorized information object, and what am I permitted to do with it?"*
 
@@ -111,7 +111,7 @@ The unit observes permitted information from the environment, executes its encod
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 <div align="center">
 
@@ -158,7 +158,7 @@ The unit observes permitted information from the environment, executes its encod
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -197,7 +197,7 @@ make clean
 
 ---
 
-## 💻 Usage
+## Usage
 
 ```bash
 # Assemble an Airbot program
@@ -235,7 +235,7 @@ make clean
 
 ---
 
-## 📝 Example Program
+## Example Program
 
 ```asm
 ; counter.airasm — A state-evolving counter EIU
@@ -255,7 +255,7 @@ done:
 
 ---
 
-## ⚙️ Instruction Set
+## Instruction Set
 
 The Airbot Bit Machine uses **32 opcodes** encoded in fixed **16-bit instructions**:
 
@@ -275,7 +275,7 @@ The Airbot Bit Machine uses **32 opcodes** encoded in fixed **16-bit instruction
 
 ---
 
-## 🔐 Cryptography
+## Cryptography
 
 Airbot implements all cryptographic primitives **from scratch** — zero external libraries:
 
@@ -289,15 +289,15 @@ Airbot implements all cryptographic primitives **from scratch** — zero externa
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 airbot/
-├── 📄 Makefile              # Pure C99 build — single command
-├── 📄 README.md             # You are here!
-├── 📄 .gitignore            # Git ignore rules
+├── Makefile                 # Pure C99 build — single command
+├── README.md                # You are here!
+├── .gitignore               # Git ignore rules
 │
-├── 📂 src/                  # All source code (46 files)
+├── src/                     # All source code (46 files)
 │   ├── bitstream.*          # Bit-level I/O engine
 │   ├── blake3.*             # BLAKE3-256 hash (from scratch)
 │   ├── chacha20.*           # ChaCha20-Poly1305 AEAD (RFC 8439)
@@ -322,36 +322,36 @@ airbot/
 │   ├── crypto_test.*        # Cryptographic test vectors
 │   └── main.c               # CLI entry point
 │
-├── 📂 examples/             # Example programs
+├── examples/                # Example programs
 │   ├── counter.airasm       # State-evolving counter
 │   ├── hello.airasm         # Hello world
 │   └── quine.airasm         # Self-referencing quine
 │
-├── 📂 docs/                 # Documentation
+├── docs/                    # Documentation
 │   ├── experiment_plan.md   # Experiment methodology
 │   └── visibility_methodology.md  # Visibility analysis docs
 │
-└── 📂 tools/                # Development tools
+└── tools/                   # Development tools
     └── tcc/                 # Tiny C Compiler (optional)
 ```
 
 ---
 
-## 🧪 Prototype Test Suite
+## Prototype Test Suite
 
 The system tests three hypotheses. All implemented hypotheses passed the prototype's test suite:
 
 | Hypothesis | Description | Result |
 |------------|-------------|--------|
-| **H1** (Encoded Behavior) | Different bit patterns produce different computational behaviors | ✅ 126 unique behaviors from 256 EIUs (49.2%) |
-| **H2** (State Evolution) | EIUs evolve through distinct state transitions | ✅ 100 steps, 100 distinct states (100%) |
-| **H3** (Constrained Replication) | EIUs produce valid successors only under authorization constraints | ✅ 4/4 tests passed |
+| **H1** (Encoded Behavior) | Different bit patterns produce different computational behaviors | 126 unique behaviors from 256 EIUs (49.2%) |
+| **H2** (State Evolution) | EIUs evolve through distinct state transitions | 100 steps, 100 distinct states (100%) |
+| **H3** (Constrained Replication) | EIUs produce valid successors only under authorization constraints | 4/4 tests passed |
 
 > **Note**: A prototype passing its own test suite is not the same as independent empirical validation. These results demonstrate that the implementation behaves as designed.
 
 ---
 
-## 🔭 Visibility Analysis
+## Visibility Analysis
 
 Under the defined ISP observer model, Airbot produced an estimated **83.67% non-detection probability** versus **15.77%** for the modeled IPv4 baseline. Under the DPI model: **78.10%** vs **2.25%**.
 
@@ -366,7 +366,7 @@ These are modeled estimates computed from defined signal functions and observer 
 
 ---
 
-## 🆚 Prior Art
+## Prior Art
 
 Airbot explicitly addresses three limitations identified in **Active Network** architectures (1996–2002): resource metering, code verification, and capability-based authorization.
 
@@ -379,7 +379,7 @@ Airbot explicitly addresses three limitations identified in **Active Network** a
 
 ---
 
-## 🚫 Zero Dependencies
+## Zero Dependencies
 
 <div align="center">
 
@@ -403,7 +403,7 @@ Every algorithm — from BLAKE3 hashing to ChaCha20-Poly1305 encryption to the V
 
 ---
 
-## 📊 Code Statistics
+## Code Statistics
 
 | Metric | Value |
 |--------|-------|
@@ -418,7 +418,7 @@ Every algorithm — from BLAKE3 hashing to ChaCha20-Poly1305 encryption to the V
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 | Document | Description |
 |----------|-------------|
@@ -427,7 +427,7 @@ Every algorithm — from BLAKE3 hashing to ChaCha20-Poly1305 encryption to the V
 
 ---
 
-## 📄 License
+## License
 
 Research prototype — academic use.
 
@@ -435,7 +435,7 @@ Research prototype — academic use.
 
 <div align="center">
 
-**Built from scratch with ❤️ in pure C99**
+**Built from scratch in pure C99**
 
 <br>
 
