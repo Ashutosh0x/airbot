@@ -113,37 +113,88 @@ The unit observes permitted information from the environment, executes its encod
 
 ## Architecture
 
-<div align="center">
+```mermaid
+flowchart TD
+    CLI["CLI<br/>main.c"]
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     Airbot System Architecture                  │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐   │
-│  │ CLI/Main │──│Assembler │──│ Verifier │──│ ABM (16-bit  │   │
-│  │          │  │          │  │ (Static) │  │     VM)      │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────┬───────┘   │
-│                                                     │           │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────▼───────┐   │
-│  │Bitstream │──│   TLV    │──│   EIU    │──│ Environment  │   │
-│  │  Engine  │  │  Codec   │  │   Core   │  │   + State    │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────────┘   │
-│                                                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐   │
-│  │  BLAKE3  │──│Capability│──│   EIA    │──│  Replicator  │   │
-│  │  Hash    │  │  System  │  │ Address  │  │              │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────────┘   │
-│                                                                 │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────┐   │
-│  │ChaCha20  │──│  Onion   │──│ Privacy  │──│ Visibility   │   │
-│  │Poly1305  │  │  Layer   │  │  Model   │  │   Engine     │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────────┘   │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+    subgraph toolchain["Toolchain"]
+        ASM["Assembler<br/>.airasm to bytecode"]
+        DIS["Disassembler<br/>bytecode to .airasm"]
+    end
 
-</div>
+    subgraph runtime["Runtime"]
+        VER["Static Verifier<br/>eBPF-inspired, pre-execution"]
+        VM["Airbot Bit Machine<br/>16-bit, 32 opcodes, gas-metered"]
+        ENV["Environment<br/>host for one EIU"]
+        ST["State Evolution<br/>A t+1 = F A t, E t, Auth"]
+        REP["Replicator<br/>constrained spawn"]
+    end
+
+    subgraph model["Object Model"]
+        EIU["EIU<br/>Executable Information Unit"]
+        EIA["EIA<br/>Executable Information Address"]
+        CAP["Capability System<br/>64-bit mask, HMAC tokens"]
+    end
+
+    subgraph wire["Encoding"]
+        BS["Bitstream Engine<br/>bit-level I/O"]
+        TLV["TLV Wire Format<br/>prefix varints"]
+    end
+
+    subgraph crypto["Cryptography, from scratch"]
+        B3["BLAKE3-256<br/>content addressing"]
+        CC["ChaCha20-Poly1305<br/>RFC 8439 AEAD"]
+        ONI["Onion Layer"]
+    end
+
+    subgraph analysis["Analysis"]
+        PRIV["Privacy Model<br/>5-component vector"]
+        VIS["Visibility Engine<br/>7 channels"]
+        EXP["Metrics, Experiments, Matrix"]
+    end
+
+    CLI --> ASM
+    CLI --> DIS
+    CLI --> ENV
+    CLI --> ST
+    CLI --> REP
+    CLI --> ONI
+    CLI --> PRIV
+    CLI --> VIS
+    CLI --> EXP
+
+    ASM --> VM
+    DIS --> VM
+    VER --> VM
+
+    ENV --> VER
+    ENV --> VM
+    ENV --> EIU
+    ENV --> CAP
+
+    ST --> ENV
+    ST --> EIU
+    ST --> B3
+    REP --> ENV
+    REP --> EIU
+    REP --> CAP
+
+    EIU --> CAP
+    EIU --> B3
+    EIA --> CAP
+    EIA --> B3
+    EIA --> VM
+
+    ONI --> CC
+    CC --> B3
+
+    TLV --> BS
+    PRIV --> BS
+    VIS --> BS
+    EXP --> ST
+    EXP --> BS
+    EXP --> B3
+```
 
 | Component | Description |
 |-----------|-------------|
