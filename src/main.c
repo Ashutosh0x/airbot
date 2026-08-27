@@ -630,7 +630,7 @@ static int cmd_privacy(int argc, char **argv) {
 static int cmd_onion(void) {
     printf("\n");
     printf("  ╔════════════════════════════════════════════════════════════════╗\n");
-    printf("  ║  AIRBOT + ONION ROUTING SIMULATION                           ║\n");
+    printf("  ║  AIRBOT ONION SIMULATION - IN-PROCESS, NOT THE LIVE PATH     ║\n");
     printf("  ║  Sphinx-like 3-hop circuit with per-hop capability auth       ║\n");
     printf("  ║  ChaCha20-Poly1305 AEAD — research prototype                 ║\n");
     printf("  ╚════════════════════════════════════════════════════════════════╝\n");
@@ -640,6 +640,9 @@ static int cmd_onion(void) {
     onion_circuit_init(&circuit, 3);
 
     /* Generate relay keys deterministically */
+    /* DETERMINISTIC seed: this command is a self-contained simulation, not
+       the production onion path. Keys here are reproducible on purpose so the
+       demo is repeatable; they must never be confused with ox_/airbchan. */
     uint8_t seed[] = "airbot-onion-experiment-seed-2026";
     onion_generate_relays(&circuit, seed, sizeof(seed) - 1);
 

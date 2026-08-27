@@ -1,0 +1,41 @@
+
+  PHASE 9 — TRAFFIC-ANALYSIS CLASSIFIER (production path)
+  ================================================================
+  observer sees ONLY: frame sizes, frame counts, timing
+  samples: 240 across 4 classes
+
+  | class  | n  | frames | bytes | duration ms | mean gap ms |
+  |--------|---:|-------:|------:|------------:|------------:|
+  | BURST  | 60 |    3.0 |  3252 |         8.0 |        2.00 |
+  | IDLE   | 60 |    0.0 |     0 |        47.2 |       47.22 |
+  | LARGE  | 60 |    1.0 |  1084 |         2.2 |        1.09 |
+  | SMALL  | 60 |    1.0 |  1084 |         2.2 |        1.12 |
+
+  confusion matrix (rows = true, cols = predicted)
+             BURST    IDLE   LARGE   SMALL
+  ----------------------------------------
+  BURST         29       0       0       0
+  IDLE           0      37       0       0
+  LARGE          0       0       5      23
+  SMALL          0       0       8      18
+
+  classifier accuracy : 74.2%
+  random baseline     : 25.0%
+  advantage over chance: 3.0x
+
+  FINDING: an observer CAN distinguish protocol activity from metadata alone
+
+  PAYLOAD-SIZE LEAK TEST: 16 B vs 600 B payload
+  ========================================================
+  observed bytes on wire, LARGE: [1084]
+  observed bytes on wire, SMALL: [1084]
+  classifier accuracy : 53.3%   (chance = 50.0%)
+
+  RESULT: at chance. The constant 1084-byte envelope HIDES payload
+  size -- a 37x payload difference is not recoverable from the wire.
+
+  What does leak, by class:
+    BURST  frames=3.0  duration=8.0 ms
+    IDLE   frames=0.0  duration=47.2 ms
+    LARGE  frames=1.0  duration=2.2 ms
+    SMALL  frames=1.0  duration=2.2 ms

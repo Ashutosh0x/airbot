@@ -1,0 +1,17 @@
+=== 1. socket syscalls (must be transport.c ONLY) ===
+  SAFE: transport.c is the sole chokepoint
+=== 2. DNS APIs ===
+  SAFE: only transport.c, and it is gated by netpolicy_authorize_dns()
+=== 3. IPv6 / UDP surface ===
+  SAFE: no AF_INET6 / UDP socket path exists
+=== 4. host / user / machine identity ===
+  SAFE: no hostname/username/MAC/adapter enumeration anywhere
+=== 5. peer-address output (must route via netlog_safe_addr) ===
+  SAFE: all peer output passes through netlog_safe_addr()
+=== 6. persistent identifiers ===
+  SAFE: no persistent client/session/device identifier
+=== 7. key material reaching logs ===
+  SAFE: no key material is printed
+
+STATIC AUDIT: PASS
+EXIT=0

@@ -118,6 +118,22 @@ mid-session: refused, zero sockets to the destination
 
 **Visible:** that a Tor connection exists; frame sizes (constant 1084 B);
 timing; connection count and duration.
+
+**Measured (Phase 9, production path, 240 samples).** A passive observer
+given only frame sizes, counts and timing classifies protocol activity at
+**74.2% vs a 25% baseline (3.0x)**. The breakdown matters more than the
+headline:
+
+| what the observer tried to tell apart | result |
+|---|---|
+| 16 B vs 600 B payload (both 1 frame) | **53.3%, i.e. chance** — the constant envelope works; a 37x payload difference is not recoverable |
+| burst (3 frames) vs single message | **perfectly separable** |
+| idle vs active | **perfectly separable** |
+
+So payload size is genuinely hidden, and **message count and idle structure
+are not hidden at all**. Airbot has a size defence and no count/timing
+defence. Batching narrows correlation between flows; it does not conceal
+that a burst occurred.
 **Not visible on the wire:** payload, payload size, hop index, hop count,
 message type, any stable cross-hop identifier.
 **Local:** the OS, `netstat`, and EDR see the process and its sockets

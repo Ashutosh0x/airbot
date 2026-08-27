@@ -1,0 +1,11 @@
+
+  PHASE 10 - FUZZING THE PRODUCTION PARSERS
+  ============================================================
+  cases executed          : 68827
+  envelope rejections     : 48672
+  onion rejections        : 20154
+  ACCEPTED malformed      : 0
+  crashes                 : 0 (process completed)
+
+  result: NO malformed frame accepted
+

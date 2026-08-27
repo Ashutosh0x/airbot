@@ -1,0 +1,71 @@
+=== PHASE 6 — KDF CALL-SITE AUDIT ===
+
+Primitive: HKDF-SHA256 (RFC 5869). Wrapper:
+    hkdf32(ikm, ikm_len, salt, salt_len, info, out[32])
+      -> hkdf_sha256(salt, salt_len, ikm, ikm_len, info, strlen(info), out, 32)
+
+Every derivation in the production path, with full parameters:
+
+KDF #1 — onion hop key                             src/onionx.c:74
+  input secret : X25519(eph_sk_i, relay_pk_i)          32 B
+  salt         : eph_pk_i || relay_pk_i                64 B  (both public)
+  info         : "airbot-onion-v1-hopkey"
+  output       : 32 B -> key_out[32]                   fully consumed
+  purpose      : AEAD key for onion layer i
+  lifetime     : one layer of one message; zeroed after use
+  consumer     : chacha20_poly1305_encrypt / _decrypt
+
+KDF #2 — link envelope key                         src/onionx.c:93 (via
+  input secret : X25519(link_eph_sk, relay_pk)      ox_derive_labeled_key,
+  salt         : eph_pk || relay_pk                 called from airbchan.c
+  info         : "airbot-link-v1"                   :66 seal / :102 open)
+  output       : 32 B -> key_out[32]                   fully consumed
+  purpose      : AEAD key for the constant-size link envelope
+  lifetime     : one frame; zeroed after use
+  consumer     : chacha20_poly1305_encrypt / _decrypt
+
+KDF #3 — per-hop message id                        src/onionx.c:229
+  input secret : 16 B CSPRNG seed (never on the wire; zeroed at :293)
+  salt         : k_i, the hop key from KDF #1          32 B  (secret)
+  info         : "airbot-onion-v1-msgid"
+  output       : 32 B -> hop_id[32]; FIRST 16 B used
+  purpose      : replay-window identifier, distinct per hop
+  lifetime     : one message; zeroed after copy
+  consumer     : ox_replay_check
+
+--- CHECKS ---
+[PASS] no two purposes share an info label
+       distinct labels: airbot-onion-v1-hopkey, airbot-link-v1,
+                        airbot-onion-v1-msgid, airbot-relay-fingerprint-v1
+       (relay-fingerprint is a BLAKE3 domain tag, not an HKDF info)
+[PASS] no key reuse across encryption/authentication domains
+       ChaCha20-Poly1305 derives its own Poly1305 key internally from the
+       AEAD key per RFC 8439; no separate MAC key is derived or shared.
+[PASS] no accidental truncation of an AEAD key
+       KDF #1 and #2 consume all 32 B.
+[NOTE] KDF #3 truncates 32 B -> 16 B deliberately. Safe: HKDF output bytes
+       are independent, so a prefix is a valid shorter key. The discarded
+       16 B are never used elsewhere.
+[PASS] no excessive output length (all L=32, far below 255*32)
+[PASS] no secret-dependent branching in the KDF
+       machine-code audit: 0 conditional branches on secret data
+[PASS] no legacy BLAKE3-HMAC derivation remains
+       hmac_blake3 and B3_BLOCKSIZE removed; only historical comments remain
+[PASS] no test-only KDF reachable from production
+       onion.c derives relay keys DETERMINISTICALLY from a hardcoded seed
+       ("airbot-onion-experiment-seed-2026"). It is a SIMULATION reachable
+       only from the `onion` CLI demo. Verified: airbchan/onionx/netcmd/
+       transport/privframe/batch/relaydir never call onion_*. Now enforced
+       by static-audit rule 8 and labelled in the command's own banner.
+
+--- ASYMMETRY FLAGGED FOR REVIEW (not a defect) ---
+KDF #1/#2 place the DH secret in IKM and public keys in salt — the standard
+pattern. KDF #3 inverts this: the 32 B secret hop key is the SALT and the
+16 B seed is the IKM. RFC 5869 permits either; both inputs are secret so the
+PRK is strong. Recorded in CRYPTO-REVIEW.md section 5.3 for an auditor.
+
+--- RESIDUAL ---
+KDF #1 and #2 derive from the SAME X25519 inputs when a client both onion-
+addresses and link-addresses the same relay; they are separated by the info
+label alone. Label-only separation is standard HKDF practice, but it is the
+one construction here an auditor should confirm rather than assume.

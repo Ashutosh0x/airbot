@@ -1,0 +1,31 @@
+
+  HOP-CONCEALMENT MATRIX (wire size per hop count x payload)
+  ----------------------------------------------------------
+  constant envelope wire size = 1084 bytes
+
+  hops | payload | onion len | WIRE SIZE
+  -----+---------+-----------+----------
+   1   |     0   |    1022   |   1084
+   1   |     1   |    1022   |   1084
+   1   |    64   |    1022   |   1084
+   1   |   300   |    1022   |   1084
+   1   |   600   |    1022   |   1084
+   2   |     0   |    1022   |   1084
+   2   |     1   |    1022   |   1084
+   2   |    64   |    1022   |   1084
+   2   |   300   |    1022   |   1084
+   2   |   600   |    1022   |   1084
+   3   |     0   |    1022   |   1084
+   3   |     1   |    1022   |   1084
+   3   |    64   |    1022   |   1084
+   3   |   300   |    1022   |   1084
+   3   |   600   |    1022   |   1084
+   4   |     0   |    1022   |   1084
+   4   |     1   |    1022   |   1084
+   4   |    64   |    1022   |   1084
+   4   |   300   |    1022   |   1084
+   4   |   600   |    1022   |   1084
+
+  distinct wire sizes observed across all 20 cases: EXACTLY ONE
+  hop-count concealment on the wire: PROVEN for these cases
+

@@ -1,0 +1,17 @@
+=== RFC 7748 6.1 vector, exact bytes ===
+  airbot=c3da55379de9c6908e94ea4df28d084f32eccf03491c71f754b4075577a28552
+  oracle=c3da55379de9c6908e94ea4df28d084f32eccf03491c71f754b4075577a28552
+  RFC   =c3da55379de9c6908e94ea4df28d084f32eccf03491c71f754b4075577a28552
+  match oracle: True
+
+=== 8 random ECDH pairs (the case that actually matters) ===
+  pair 1: OK
+  pair 2: OK
+  pair 3: OK
+  pair 4: OK
+  pair 5: OK
+  pair 6: OK
+  pair 7: OK
+  pair 8: OK
+
+  8/8 random ECDH agreements match

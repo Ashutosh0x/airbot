@@ -304,6 +304,20 @@ section 9. Nothing here is asserted without a test that produces it.
 | Protocol fingerprinting | No magic, no version, no type, no hop count. A 2-byte length prefix taking one of six values remains, and the six-value size distribution is itself a signature. **Statistical indistinguishability from ordinary traffic has NOT been demonstrated and is not claimed.** |
 | Timing correlation | Measured: immediate forwarding gives an attacker **100%** matching (baseline 2.5%). Batching into 250 ms rounds with shuffling reduces this to **18.8%** (mean anonymity set 5.3) at a cost of up to 250 ms per hop. Reduced, not solved. |
 
+### Measured metadata leakage (Phase 9)
+
+A classifier given only frame sizes, counts and timing from the production
+path separates protocol activity at **74.2%** against a 25% baseline.
+
+- **Payload size: PROTECTED.** 16 B vs 600 B is indistinguishable (53.3%,
+  chance). Both emit exactly 1084 bytes.
+- **Message count: NOT PROTECTED.** A 3-frame burst is perfectly separable
+  from a single message.
+- **Idle vs active: NOT PROTECTED.** Trivially separable by duration.
+
+The constant-size envelope does the job it was designed for. There is no
+corresponding defence for how many messages are sent or when.
+
 ### NOT PROTECTED — stated plainly
 
 | Threat | Why |

@@ -1,0 +1,14 @@
+
+  C4.4 — KDF DIFFERENTIAL VERIFICATION
+  ==================================================================
+  SHA-256 vs hashlib          : 19/19 lengths match 
+  HMAC-SHA256 vs python hmac  : 5/5 cases match 
+  RFC 5869 published vectors  : 3 cases (PRK + OKM each)
+  Boundary cases              : 8/8 match 
+  Domain separation           : distinct info -> distinct OKM
+  Salt separation             : distinct salt -> distinct OKM
+
+  RESULT: ALL CONFORMANCE CHECKS PASS
+  Scope: functional conformance to FIPS 180-4 / RFC 2104 / RFC 5869.
+  This does NOT establish security or constant-time behaviour.
+

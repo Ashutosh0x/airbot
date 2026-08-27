@@ -1,0 +1,37 @@
+=== AIRBOT SECURITY BASELINE ===
+frozen: Thu Aug 27 07:30:26 UTC 2026 UTC
+
+--- source identity ---
+commit        : fbf449f766a0fe972f5e86e8603e0881e951a01b
+short         : fbf449f
+tree state    : 1 pending (0 = clean)
+audit tag     : audit-2026-08-27 -> f5282d1 (historical, NOT this baseline)
+
+--- toolchain ---
+compiler      : tcc version 0.9.27 (x86_64 Windows)
+optimizer     : none (TinyCC has no -O)
+target        : x86_64, PE/COFF out, ELF objects
+build cmd     : tcc -o build/airbot-net.exe $(ls src/*.c | grep -v bench_debug) -Isrc -lws2_32
+OS            : Windows 11 Home Single Language 10.0.26200
+python        : Python 3.8.10
+oracles       : pyca/cryptography 46.0.7, blake3 1.0.9, capstone 5.0.7, scipy 1.10.1
+
+--- artifact ---
+binary sha256 : aa30f40a50c6eff091e5db5bda1b4a4a0581513f44f0067484b8ee5a913cc541
+binary size   : 268288 bytes
+reproducible  : verified byte-identical across consecutive builds
+
+--- security-critical source hashes ---
+  src/x25519.c           9b58cb3151de2ffee01b05f68fe4e92fa9039c4b67cc732734869484ec64dcac
+  src/sha256.c           90eef0d85f9ee40030ae25b88d505570d312d0341ac9d29365548cf48087954d
+  src/onionx.c           c0721282b5675d08eccf0702d68988c9dd62105f25a15bf83b7a9a76728baf61
+  src/airbchan.c         6852b369e6241d3e12f6d728f8253d90761f7caa5c09d153c1c66616d9828ac0
+  src/batch.c            50fdd612661c70c62f968b8490b8db87fbd920f76bf3a3604d11680206e1e09d
+  src/relaydir.c         997742f227313805939c4131f0edb18cfa8a9c8c30270fc38df25d7d59587d1f
+  src/blake3.c           cde40644c5db00ae844b6c2f6f0e9a6e1599f7b4fb98ed8fee5684b6dbe5f164
+  src/chacha20.c         1feb50d476acf1a30b2e530d41b41fd24d6487ebe9d623ff3aff2c77d07d4cc0
+  src/netpolicy.c        1e5ccd7c714831fc3cb51000ae44c497e52a2141ad0dba2613478f8733e91edc
+  src/transport.c        751cd7fd2beb6cbb43595fb33343e044581f7d786e4bddfcf8fe0fb243ca1303
+  src/socks5.c           c18656d9aeceedac8f626bec804b12a49450f54ffde9aeb72f4df8ea5f65c502
+  src/privframe.c        878732bf014e95ccc58c7afde2bb14cac9a3955e1d7ac17c59ff4a3debc60419
+  tools/static-audit.sh  7cd7212f30cad09cc2b8645d99d4bc547fe6b7e7e09123142f066244ec3aa512

@@ -40,6 +40,14 @@ k=$(grep -rnE 'printf\([^)]*(secret_key|g_key|eph_sk|->key|hop_key)' src/*.c)
 if [ -n "$k" ]; then echo "$k"; echo "  FORBIDDEN: key material in output"; fail=1
 else echo "  SAFE: no key material is printed"; fi
 
+echo "=== 8. simulation module isolated from the production path ==="
+# onion.c derives relay keys DETERMINISTICALLY from a hardcoded seed. It is a
+# demo, reachable only from the `onion` CLI command. If the production data
+# path ever calls into it, predictable keys would reach real traffic.
+sim=$(grep -rnE 'onion_(circuit_init|generate_relays|wrap|unwrap|simulate|verify_capability)\s*\('       src/airbchan.c src/onionx.c src/netcmd.c src/transport.c src/privframe.c       src/batch.c src/relaydir.c 2>/dev/null)
+if [ -n "$sim" ]; then echo "$sim"; echo "  FORBIDDEN: production path calls the simulation module"; fail=1
+else echo "  SAFE: production path (ox_/airbchan) never calls onion_* simulation"; fi
+
 echo
 if [ $fail -eq 0 ]; then echo "STATIC AUDIT: PASS"; else echo "STATIC AUDIT: FAIL"; fi
 exit $fail

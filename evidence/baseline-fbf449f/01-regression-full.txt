@@ -1,0 +1,265 @@
+########## crypto-test ##########
+
+  ╔════════════════════════════════════════════════════════════════╗
+  ║  CRYPTOGRAPHIC NEGATIVE TEST SUITE                           ║
+  ║  ChaCha20-Poly1305 AEAD (RFC 8439) verification             ║
+  ╚════════════════════════════════════════════════════════════════╝
+
+  [PASS] ChaCha20 RFC 7539 test vector           
+  [PASS] Poly1305 RFC 8439 test vector           
+  [PASS] AEAD encrypt/decrypt round-trip         
+  [PASS] Modified ciphertext rejected            
+  [PASS] Wrong key rejected                      
+  [PASS] Wrong nonce rejected                    
+  [PASS] Truncated packet rejected               
+  [PASS] Forged tag rejected                     
+  [PASS] Tampered AAD rejected                   
+  [PASS] 1000 CSPRNG nonces unique               
+  [PASS] Replay detection works                  
+
+  ──────────────────────────────────────────────────
+  Total: 11 | Passed: 11 | Failed: 0
+  ✓ ALL CRYPTO TESTS PASSED
+
+EXIT=0
+
+########## onion-test ##########
+EXIT=0
+
+########## channel-test ##########
+EXIT=0
+
+########## batch-test ##########
+EXIT=0
+
+########## relaykey-test ##########
+EXIT=0
+
+########## privacy-test ##########
+
+  AIRBOT PRIVACY INVARIANT HARNESS
+  ==================================================
+
+  Fail-closed policy
+  --------------------------------------------------
+  [PASS] direct dial refused in privacy mode                 
+  [PASS] no local DNS performed on refused dial              
+  [PASS] denial counter incremented                          
+  [PASS] inbound listener refused in privacy mode            
+  [PASS] non-loopback proxy refused                          
+  [PASS] IPv6 literal refused by the family gate             
+  [PASS] bracketed IPv6 literal refused by the family gate   
+  [PASS] IPv4 literal still permitted by the family gate     
+  [PASS] IPv6 denial counter incremented                     
+  [PASS] IPv6 dial refused end-to-end in privacy mode        
+  [PASS] zero local DNS lookups across all privacy-mode attempts
+  [PASS] direct mode still permits ordinary dials            
+
+  Tor enforcement
+  --------------------------------------------------
+  [PASS] preflight fails when Tor is absent                  
+  [PASS] stack not marked validated after failed preflight   
+  [PASS] failure is reported as unreachable Tor              
+
+  Wire format and fingerprint resistance
+  --------------------------------------------------
+  [PASS] frame encodes                                       
+  [PASS] no AIRB magic anywhere in encoded frame             
+  [PASS] payload not visible in cleartext                    
+  [PASS] identical plaintext yields different ciphertext (unlinkable)
+  [PASS] both frames occupy the same size bucket             
+  [PASS] 1-byte and 200-byte payloads share a size bucket    
+  [PASS] frame decodes                                       
+  [PASS] payload survives round-trip                         
+  [PASS] hop counter recovered from ciphertext               
+
+  Malformed and hostile frames
+  --------------------------------------------------
+  [PASS] tampered ciphertext rejected                        
+  [PASS] forged tag rejected                                 
+  [PASS] rewritten length prefix rejected                    
+  [PASS] truncated frame rejected                            
+  [PASS] off-bucket length rejected                          
+  [PASS] wrong key rejected                                  
+
+  Key handling
+  --------------------------------------------------
+  [PASS] bucket sizing rejects oversized payloads            
+  [PASS] smallest bucket chosen for small payloads           
+  [PASS] bucket boundary handled                             
+
+  Cryptographic provenance (build gate)
+  --------------------------------------------------
+  [PASS] BLAKE3 matches official empty-input vector          
+  [PASS] BLAKE3 passes all official vectors (chunk + Merkle boundaries)
+  [PASS] ChaCha20 passes RFC 7539 vector                     
+  [PASS] Poly1305 passes RFC 8439 vector                     
+
+  Cross-hop correlation resistance
+  --------------------------------------------------
+  [PASS] same EIU at 3 hops produces 3 distinct wire images  
+  [PASS] BLAKE3 content digest never appears on the wire     
+  [PASS] no stable byte pattern at fixed offset across hops  
+  [PASS] length prefix is identical across hops (bucket, not size)
+  [PASS] hop counter not present as a cleartext field        
+
+  ==================================================
+  Total: 42 | Passed: 42 | Failed: 0
+  ALL PRIVACY INVARIANTS HOLD
+
+EXIT=0
+
+########## adversarial-test ##########
+
+  AIRBOT ADVERSARIAL / RED-TEAM SUITE
+  ==================================================
+
+  Adversary: malicious relay A
+  --------------------------------------------------
+  [PASS] relay A cannot read the application payload           
+  [PASS] relay A cannot peel relay B's layer                   
+  [PASS] relay A learns ONLY its immediate successor           
+         relay A observes next hop: 127.0.0.1:9402
+         relay A does NOT observe the exit or the payload
+  [PASS] exit relay C DOES see the payload (inherent to onion routing)
+  [PASS] colluding A + C hold UNRELATED message ids            
+         Each hop id is derived under that hop's own key, so a
+         shared identifier no longer links the two relays.
+         A + C can STILL correlate by timing and size - that
+         residual attack is unfixed; see the traffic section.
+
+  Adversary: retrospective key compromise
+  --------------------------------------------------
+  [PASS] traffic captured for later analysis                   
+  [PASS] while the long-term key lives, the relay can decrypt  
+  [PASS] long-term secret erased from memory                   
+  [PASS] captured traffic NOT decryptable after key erasure    
+         Note: this demonstrates that the EPHEMERAL secret is gone.
+         An adversary who seizes the long-term key while it is
+         still in memory, or who recorded it earlier, is NOT
+         defeated by this. See SECURITY.md.
+
+  Adversary: cross-hop correlation
+  --------------------------------------------------
+  [PASS] same message wrapped twice differs on the wire        
+  [PASS] no 8-byte sequence recurs between hop 1 and hop 2 wire images
+
+  Adversary: replay / duplication
+  --------------------------------------------------
+  [PASS] first delivery accepted                               
+  [PASS] 20 replays of the same frame all rejected             
+  [PASS] replay window holds no cross-session state after rotation
+         Trade-off: a rotated window will re-accept a very old
+         frame. Bounded memory was chosen over unbounded state.
+
+  Adversary: passive traffic analysis (size only)
+  --------------------------------------------------
+         flow A observed sizes: 286 286 286 286 286 286 
+         flow B observed sizes: 286 286 286 286 286 286 
+  [PASS] payloads of differing length collapse to identical observed sizes
+         MEASURED: 0 of 6 message pairs distinguishable by size.
+         Bucketing removes exact length. It does NOT remove
+         timing, ordering, count or burst structure, and a
+         6-value size distribution is itself a signature.
+
+  Adversary: protocol fingerprinting
+  --------------------------------------------------
+  [PASS] no application magic on the wire                      
+  [PASS] body has no text-protocol structure                   
+         MEASURED: 35% printable bytes (random ~37% expected).
+         Remaining signature: a 2-byte length prefix taking one
+         of six values. NOT demonstrated indistinguishable from
+         arbitrary internet traffic.
+
+  Endpoint: key material handling
+  --------------------------------------------------
+  [PASS] generated identity has a non-trivial secret           
+  [PASS] erase clears the secret key buffer                    
+         Best-effort only: cannot defeat register spills, swap,
+         hibernation images, or a privileged local process.
+
+  Relay-compromise matrix (measured)
+  --------------------------------------------------
+   compromise | client IP | dest | payload | other hops | id-link
+   -----------+-----------+------+---------+------------+--------
+   A          | prev hop  |  no  |   no    | next only  |   -
+   B          | no        |  no  |   no    | next only  |   -
+   C (exit)   | no        | YES  |   YES   | none       |   -
+   A + B      | prev hop  |  no  |   no    | -          |   no
+   A + C      | prev hop  | YES  |   YES   | -          |   no
+   B + C      | no        | YES  |   YES   | -          |   no
+  [PASS] relay A never obtains the payload                     
+  [PASS] relay B never obtains the payload                     
+  [PASS] A+B cannot link by protocol identifier                
+  [PASS] A+C cannot link by protocol identifier                
+  [PASS] B+C cannot link by protocol identifier                
+         NOTE: 'client IP' for relay A means the TRANSPORT peer
+         address, which is the Tor exit when Airbot runs behind
+         Tor - not the client's own address.
+         A+C remain able to correlate by TIMING. See below.
+
+  Replay, reordering and session isolation
+  --------------------------------------------------
+  [PASS] out-of-order frames accepted (3,1,2)                  
+  [PASS] each reordered frame is still single-use              
+  [PASS] frame from a previous key epoch rejected              
+  [PASS] frame addressed to another relay identity rejected    
+
+  ==================================================
+  Total: 28 | Passed: 28 | Failed: 0
+  All modelled defences held. Residual attacks are listed above.
+
+EXIT=0
+
+########## live-test ##########
+
+  AIRBOT LIVE SOCKET INTEGRATION TEST
+  ==================================================
+  Drives the PRODUCTION path over real sockets:
+  client -> relay A -> relay B -> relay C(exit)
+
+  [PASS] three relays listening on real sockets                
+  [PASS] client connected to relay A                           
+  [PASS] airbchan_send accepted by production path             
+  [PASS] relay A peeled exactly one layer                      
+  [PASS] relay B peeled exactly one layer                      
+  [PASS] relay C peeled exactly one layer                      
+  [PASS] relay A is NOT the exit                               
+  [PASS] relay B is NOT the exit                               
+  [PASS] relay C IS the exit                                   
+  [PASS] exit recovered the exact application payload          
+
+  Socket-level evidence (bytes captured on each link)
+  --------------------------------------------------
+  link 1 (client->A): 1084 bytes, first 16: E39B5B672F2093FDF0B3638FF706B5D1
+           printable: 36%
+  link 2 (A->B): 1084 bytes, first 16: 56F3F69EBEF6118CCB89E4DBF54AB4A4
+           printable: 37%
+  link 3 (B->C): 1084 bytes, first 16: B478987DC2D4BE071A08B3BE0C323622
+           printable: 35%
+
+  [PASS] link 1 carries no plaintext payload                   
+  [PASS] link 1 carries no AIRB magic                          
+  [PASS] link 1 has no EIU header at the payload offset        
+  [PASS] link 2 carries no plaintext payload                   
+  [PASS] link 2 carries no AIRB magic                          
+  [PASS] link 2 has no EIU header at the payload offset        
+  [PASS] link 3 carries no plaintext payload                   
+  [PASS] link 3 carries no AIRB magic                          
+  [PASS] link 3 has no EIU header at the payload offset        
+  [PASS] every link is the constant envelope size              
+  [PASS] frame size does NOT shrink along the chain (hop index hidden)
+  [PASS] no two links share the same wire image                
+  [PASS] wrong relay key cannot open the captured envelope     
+  [PASS] modified ciphertext rejected on captured live frame   
+  [PASS] modified outer padding rejected (padding is authenticated)
+  [PASS] replay of the live frame rejected by relay A's window 
+  [PASS] frame from a previous key epoch rejected              
+  [PASS] legacy cleartext framer refused in privacy mode       
+
+  ==================================================
+  Total: 28 | Passed: 28 | Failed: 0
+  LIVE PRODUCTION PATH IS ONION-PROTECTED
+
+EXIT=0
+
