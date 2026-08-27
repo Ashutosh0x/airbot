@@ -17,10 +17,20 @@
 1. ARTIFACT BINDING
    compiler   : tcc 0.9.27 (x86_64 Windows), no optimizer
    flags      : -Isrc -lws2_32
-   git rev    : 45349a2 (branch privacy-hardening, tag audit-2026-08-27)
+   git rev    : 60202fa (master)
+   audit tag  : audit-2026-08-27 -> f5282d1, which is SOURCE-IDENTICAL
+                to 45349a2; both build to 9e013f20... (verified by
+                building each in a clean worktree).
    tree state : CLEAN — evidence bound to a reproducible source state
    binary     : build/airbot-net.exe
-   SHA-256    : 9e013f20309a7fabe3698fe11acc72969531756ebb63722f0659a73eb2b9a56a
+   SHA-256    : aa30f40a50c6eff091e5db5bda1b4a4a0581513f44f0067484b8ee5a913cc541
+                (this file previously recorded 9e013f20..., which was
+                correct for the tagged revision but went STALE at
+                210ef05 when the KDF migration changed derived keys.
+                Provenance re-verified by clean-worktree builds:
+                  45349a2 -> 9e013f20...  matches the tagged audit
+                  f5282d1 -> 9e013f20...  matches (tag target)
+                  60202fa -> aa30f40a...  current)
    src/x25519.c             9b58cb3151de2ffee01b05f68fe4e92f...
    src/onionx.c             57106c434002b20383120b4859b7da82...
    src/airbchan.c           6852b369e6241d3e12f6d728f8253d90...
