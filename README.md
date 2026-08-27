@@ -73,7 +73,8 @@
 | **Language** | ![C](https://img.shields.io/badge/C99-00599C?style=flat-square&logo=c&logoColor=white) Pure ISO C99 — no extensions |
 | **Compiler** | ![GCC](https://img.shields.io/badge/GCC-A42E2B?style=flat-square&logo=gnu&logoColor=white) with `-Wall -Wextra -Wpedantic` |
 | **Build** | ![Make](https://img.shields.io/badge/GNU%20Make-A42E2B?style=flat-square&logo=gnu&logoColor=white) single Makefile |
-| **Crypto** | ![BLAKE3](https://img.shields.io/badge/BLAKE3--256-333333?style=flat-square) ![ChaCha20](https://img.shields.io/badge/ChaCha20--Poly1305-333333?style=flat-square) ![Poly1305](https://img.shields.io/badge/RFC%208439-333333?style=flat-square) |
+| **Crypto** | ![X25519](https://img.shields.io/badge/X25519-333333?style=flat-square) ![ChaCha20](https://img.shields.io/badge/ChaCha20--Poly1305-333333?style=flat-square) ![HKDF](https://img.shields.io/badge/HKDF--SHA256-333333?style=flat-square) ![BLAKE3](https://img.shields.io/badge/BLAKE3--256-333333?style=flat-square) |
+| **Privacy** | ![Tor](https://img.shields.io/badge/Tor%20SOCKS5-7D4698?style=flat-square) ![Onion](https://img.shields.io/badge/Per--hop%20onion-333333?style=flat-square) ![Failclosed](https://img.shields.io/badge/Fail--closed-critical?style=flat-square) |
 | **Architecture** | ![Custom VM](https://img.shields.io/badge/16--bit%20VM-4B32C3?style=flat-square) ![32 Opcodes](https://img.shields.io/badge/32%20Opcodes-4B32C3?style=flat-square) |
 | **Platform** | ![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black) ![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white) |
 | **Dependencies** | ![None](https://img.shields.io/badge/Zero-brightgreen?style=flat-square) Built entirely from scratch |
@@ -84,7 +85,14 @@
 
 ## What is Airbot?
 
-Airbot implements a **network architecture** in which **mobile, stateful computational objects** replace passive packets. Instead of asking *"where is the destination IP?"*, the network asks *"what is this authorized information object, and what am I permitted to do with it?"*
+Airbot is a research prototype of an **application-layer object model** in
+which **mobile, stateful computational objects** carry their own behaviour,
+state and capabilities instead of being passive packets.
+
+> **It does not replace IP.** Airbot rides on ordinary TCP/IP, and in privacy
+> mode on top of Tor. The EIA is an application-layer identifier, not a
+> routing address — nothing routes on it. The contribution is the object model
+> and the privacy layer above the network, not a new network layer.
 
 ### Three Distinct Contributions
 
@@ -260,6 +268,10 @@ make clean
 # Execute an EIU
 ./build/airbot run counter.eiu --fuel 1000 --trace
 
+# Run the full security gate (crypto vectors, privacy invariants,
+# adversarial suite, live socket integration, static audit)
+make privacy-check
+
 # Evolve an EIU over multiple steps
 ./build/airbot evolve counter.eiu --steps 50 --trace
 
@@ -328,15 +340,95 @@ The Airbot Bit Machine uses **32 opcodes** encoded in fixed **16-bit instruction
 
 ## Cryptography
 
-Airbot implements all cryptographic primitives **from scratch** — zero external libraries:
+All primitives are implemented in-tree with no external libraries. Each is
+verified against published vectors **and**, where an independent
+implementation exists, differentially tested against it.
 
-| Primitive | Standard | Purpose |
-|-----------|----------|---------|
-| **BLAKE3-256** | — | Content addressing, self-certifying hashes |
-| **ChaCha20** | RFC 8439 §2 | Stream cipher for onion encryption |
-| **Poly1305** | RFC 8439 §2.5 | One-time authenticator (MAC) |
-| **ChaCha20-Poly1305 AEAD** | RFC 8439 §2.8 | Authenticated encryption for layers |
-| **HMAC** | — | Capability token generation |
+| Primitive | Standard | Purpose | Verification |
+|---|---|---|---|
+| **X25519** | RFC 7748 | Per-hop key agreement | RFC vector; 8/8 random ECDH and 10/10 Hamming-weight classes vs OpenSSL |
+| **HKDF-SHA256** | RFC 5869 | All key derivation | RFC 5869 A.1–A.3 published values; pyca/cryptography; Python `hmac` |
+| **SHA-256 / HMAC** | FIPS 180-4, RFC 2104 | Underlies HKDF | 19 lengths vs `hashlib` incl. block boundaries |
+| **ChaCha20-Poly1305** | RFC 8439 | AEAD for onion layers and link envelopes | RFC 7539/8439 vectors + 11 negative tests |
+| **BLAKE3-256** | BLAKE3 spec | EIU content addressing, relay fingerprints | 30/30 lengths vs the official library |
+
+> **Note on scope.** Passing test vectors establishes *functional
+> conformance*, not security. X25519 and BLAKE3 are hand-written and have
+> **not** been independently reviewed, and constant-time behaviour is **not
+> proven**. See [`CRYPTO-REVIEW.md`](CRYPTO-REVIEW.md).
+
+---
+
+## Privacy Mode
+
+Airbot has three mutually exclusive network roles, enforced inside the
+transport rather than by convention:
+
+| Role | Inbound | Direct dial | Local DNS | Intent |
+|---|---|---|---|---|
+| `DIRECT` | allowed | allowed | allowed | ordinary networking, **no privacy** |
+| `PRIVACY` | forbidden | forbidden | forbidden | client address protection |
+| `RELAY` | allowed | allowed | allowed | infrastructure, **public by design** |
+
+In privacy mode the data path is:
+
+```
+EIU -> per-hop onion (X25519 + HKDF-SHA256 + ChaCha20-Poly1305)
+    -> constant-size 1084-byte link envelope
+    -> Tor SOCKS5 (hostname resolved remotely)
+    -> relay -> relay -> exit
+```
+
+Every link frame is **exactly 1084 bytes** regardless of payload size or hop
+count, so the wire reveals neither payload length nor position in the chain.
+
+```bash
+# validate the privacy path before sending anything
+AIRBOT_PRIVACY=1 ./build/airbot privacy-preflight
+
+# fetch through Tor; fails closed if Tor is unavailable
+./build/airbot privacy-fetch --host example.com --path /
+
+# run a relay (public infrastructure, not a privacy client)
+./build/airbot relay --port 9401 --next <next>.onion:9402
+```
+
+If Tor is unreachable, misconfigured, or killed mid-session, every operation
+**fails closed** — there is no direct fallback, no plaintext fallback and no
+alternate resolver.
+
+---
+
+## Security Status
+
+**This is a research prototype and is NOT release-ready.** It has not had an
+independent security audit.
+
+Demonstrated with captured evidence in [`evidence/`](evidence/):
+
+- destination sees a Tor exit address, never the client IP
+- zero local DNS lookups; a unique hostname never entered the OS resolver cache
+- IPv6 explicitly denied in privacy mode
+- an intermediate relay cannot read the payload or peel another relay's layer
+- replay, cross-session and wrong-key frames rejected
+- constant 1084-byte links, verified by socket capture across 20 hop/payload combinations
+- 68,827 fuzz cases, 0 accepted, 0 crashes
+
+**Not protected:** a global passive observer, a compromised endpoint or OS, a
+malicious exit relay (it sees the payload by construction), and traffic
+confirmation by a well-resourced adversary. Batching reduces measured local
+timing correlation from 100% to 13.0% — it does not prevent global
+correlation.
+
+No claim is made that Airbot is anonymous, untraceable or undetectable.
+
+Open blockers, tracked in
+[`evidence/FINAL-RELEASE-AUDIT.txt`](evidence/FINAL-RELEASE-AUDIT.txt):
+independent-host multi-hop testing, a signed relay directory, independent
+cryptographic review, and constant-time proof.
+
+For reviewers: [`SECURITY-AUDIT-GUIDE.md`](SECURITY-AUDIT-GUIDE.md) and
+[`CRYPTO-REVIEW.md`](CRYPTO-REVIEW.md).
 
 ---
 
@@ -453,6 +545,11 @@ Airbot explicitly addresses three limitations identified in **Active Network** a
 Every algorithm — from BLAKE3 hashing to ChaCha20-Poly1305 encryption to the VM interpreter — is implemented from scratch in pure C99.
 
 ---
+
+> **Zero dependencies is a portability and reproducibility property, not a
+> security one.** It means every primitive is hand-written in this tree, which
+> is precisely why the cryptography needs independent review — see
+> [`CRYPTO-REVIEW.md`](CRYPTO-REVIEW.md).
 
 ## Code Statistics
 

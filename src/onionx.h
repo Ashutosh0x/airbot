@@ -15,11 +15,12 @@
  *     shared_i = X25519(eph_sk_i, relay_pk_i)
  *     k_i      = KDF(shared_i, "airbot-onion-v1-hopkey", eph_pk_i || relay_pk_i)
  *
- * The KDF is HMAC-BLAKE3 in extract-then-expand form (HKDF construction,
- * RFC 5869, instantiated with a verified BLAKE3). No new cryptographic
- * primitive is introduced: X25519 (RFC 7748), HKDF (RFC 5869) and
- * ChaCha20-Poly1305 (RFC 8439) are all standard and independently verified
- * against published vectors.
+ * The KDF is HKDF-SHA256 (RFC 5869). It was previously HKDF's shape over
+ * HMAC-BLAKE3, which is not a standard instantiation and had no published
+ * vectors to check against; it was replaced for that reason. No new
+ * cryptographic primitive is introduced: X25519 (RFC 7748), HKDF-SHA256
+ * (RFC 5869 over FIPS 180-4 / RFC 2104) and ChaCha20-Poly1305 (RFC 8439)
+ * are all standard and verified against published vectors.
  *
  * FORWARD SECRECY. The ephemeral secret is erased immediately after the
  * shared secret is derived, and the derived hop key is erased after use.
