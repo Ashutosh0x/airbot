@@ -1,0 +1,42 @@
+
+  EXPERIMENT 3 (clean loopback) vs EXPERIMENT 4 (emulated network)
+  ========================================================================
+  identical features, identical classifier, identical CV protocol
+
+  | feature set        |  Exp 3 (clean)  |  Exp 4 (noisy)  | change |
+  |--------------------|-----------------|-----------------|--------|
+  | size only          |   50.0% +/- 0.0 |   50.0% +/- 0.0 |  +0.0 |
+  | count only         |   75.0% +/- 0.0 |   75.0% +/- 0.0 |  +0.0 |
+  | timing only        |   67.7% +/- 1.9 |   50.0% +/- 0.0 | -17.7 |
+  | count + timing     |   74.1% +/- 2.1 |   75.0% +/- 0.0 |  +0.9 |
+  | all                |   74.1% +/- 2.1 |   75.0% +/- 0.0 |  +0.9 |
+  | baseline           |   25.0%         |   25.0%         |        |
+
+  Exp 4 confusion matrix (all features, summed over 25 CV folds)
+             BURST    IDLE   LARGE   SMALL
+  BURST        300       0       0       0
+  IDLE           0     300       0       0
+  LARGE          0       0     300       0
+  SMALL          5       0     295       0
+
+  Exp 4 per-class precision / recall
+  | class  | precision | recall | support |
+  |--------|----------:|-------:|--------:|
+  | BURST  |     98.4% | 100.0% |     300 |
+  | IDLE   |    100.0% | 100.0% |     300 |
+  | LARGE  |     50.4% | 100.0% |     300 |
+  | SMALL  |      0.0% |   0.0% |     300 |
+
+  samples per class - Exp3: {'SMALL': 60, 'LARGE': 60, 'IDLE': 60, 'BURST': 60} | Exp4: {'SMALL': 60, 'LARGE': 60, 'IDLE': 60, 'BURST': 60}
+
+  EXPERIMENT 4 - EMULATED NETWORK CONDITIONS
+  ============================================================
+  base RTT      : 180 ms
+  tail          : up to +260 ms on ~15% of frames
+  jitter        : +/- 40 ms uniform
+  loss rate     : 2.0% (retransmit adds an observed frame)
+  classes/features/classifier: IDENTICAL to Experiment 3
+
+  frames observed        : 306
+  retransmissions        : 6 (1.96% of frames)
+  -> retransmission is the ONLY mechanism here that perturbs
