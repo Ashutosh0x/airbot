@@ -1,0 +1,63 @@
+
+  C2 PARTIAL - MULTI-HOP OVER REAL TOR ONION SERVICES
+  ============================================================
+  classification: REAL INTERNET TRANSPORT, single-host relays
+  (every hop crosses the live Tor network; relays share one host)
+
+  relay A onion : rzk7pta5xpqiwwxovsq4...
+  relay B onion : dgt7ixdtvvfuup4tmqbi...
+  relay C onion : 5vaeolufcp5uioqa7d5k...
+
+  [PASS] three relays listening behind onion services        
+
+  client dialling relay A's .onion through Tor...
+  [PASS] client reached relay A over the real Tor network    
+  [PASS] production airbchan_send over Tor accepted          
+  waiting for the chain to traverse Tor (up to 120 s)...
+  [PASS] relay A peeled its layer                            
+  [PASS] relay B peeled its layer                            
+  [PASS] relay C peeled its layer                            
+  [PASS] A and B are not the exit                            
+  [PASS] C is the exit                                       
+  [PASS] exit recovered the exact payload                    
+
+  Link observations (real Tor transport):
+  | link      | bytes | first 12 hex |
+  |-----------|------:|--------------|
+  | client->A |  1084 | BDCB44EE83D4DEE267D927E7 |
+  | A->B      |  1084 | DB2F0A08A99DA3A8E5FB59FC |
+  | B->C      |  1084 | 88ED732A34EF5D5F35332621 |
+  [PASS] all three links are the constant envelope size      
+  [PASS] no plaintext payload on any Tor link                
+
+  end-to-end elapsed over Tor: 33105 ms (3 onion rendezvous circuits)
+
+  Total: 11 | Passed: 11 | Failed: 0
+
+
+=== CLASSIFICATION (must not be conflated) ===
+REAL INTERNET TRANSPORT : every client->relay and relay->relay hop traversed
+                          the live Tor network via onion services (each hop is
+                          a 6-hop rendezvous circuit). 11/11 checks passed.
+SINGLE-HOST RELAYS      : all three relays ran on one machine. This is NOT a
+                          geographically/network-independent deployment.
+NOT DONE                : true multi-host C2 across independent networks.
+
+=== WHY NOT FULLY DONE ===
+No authenticated cloud account and no existing instances were found
+(gcloud/aws/az installed but unauthenticated; no doctl/fly/docker). Paid
+provisioning was NOT performed - it requires explicit approval.
+
+=== PROCEDURE FOR THE FULL TEST ===
+On each of 3 independent hosts:
+  1. install Tor; add to torrc:
+       HiddenServiceDir /var/lib/tor/airbot
+       HiddenServicePort 9401 127.0.0.1:9401
+  2. generate a relay identity, record its BLAKE3 fingerprint
+  3. run: airbot relay --port 9401 --next <next>.onion:9402
+On the client:
+  4. pin all three fingerprints out-of-band (NOT over the same channel)
+  5. AIRBOT_PRIVACY=1 airbot privacy-preflight
+  6. run the chain and capture at each hop
+Note: relays are addressed by .onion, so NO public IP is required on any host;
+free-tier or self-hosted machines on separate networks are sufficient.
