@@ -1,0 +1,36 @@
+
+  EXPERIMENT 7 — PROTOCOL SEQUENCE CLASSIFICATION
+  ================================================================
+  6 classes, 300 samples, methodology frozen from Exp 3/4
+
+  | feature set        | accuracy | 95% CI  |
+  |--------------------|---------:|---------|
+  | size only          |    16.7% | +/- 0.0 |
+  | count only         |    65.1% | +/- 0.8 |
+  | timing only        |    84.8% | +/- 1.6 |
+  | count + timing     |    94.0% | +/- 1.2 |
+  | all                |    94.0% | +/- 1.2 |
+  | random baseline    |    16.7% |         |
+
+  PERMUTATION-LABEL CONTROL (labels shuffled, 5 repeats)
+    shuffled-label accuracy: 19.0% (min 16.2, max 21.5)
+    expected if the pipeline is sound: ~16.7%
+    -> PASS: no structural artifact
+
+  confusion matrix (all features)
+                  BROWSE      FETCH  KEEPALIVE       POLL  RECONNECT     UPLOAD
+  BROWSE             250          0          0          0          0          0
+  FETCH                0        209          0          0         41          0
+  KEEPALIVE            0          0        250          0          0          0
+  POLL                15          0          0        235          0          0
+  RECONNECT            0         29          0          0        216          5
+  UPLOAD               0          0          0          0          0        250
+
+  | class      | precision | recall |
+  |------------|----------:|-------:|
+  | BROWSE     |     94.3% | 100.0% |
+  | FETCH      |     87.8% |  83.6% |
+  | KEEPALIVE  |    100.0% | 100.0% |
+  | POLL       |    100.0% |  94.0% |
+  | RECONNECT  |     84.0% |  86.4% |
+  | UPLOAD     |     98.0% | 100.0% |
