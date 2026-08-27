@@ -127,9 +127,13 @@ regardless of application-level redaction. Airbot cannot change this.
 - **C2 PARTIAL.** Multi-hop verified over real Tor onion services (11/11), but
   all relays ran on one host. A true independent-host test is NOT DONE.
 - **C3 OPEN.** Fingerprint pinning, not a signed directory.
-- **C4 OPEN.** Hand-written X25519/BLAKE3, no independent review; constant-time
-  NOT PROVEN; single compiler (tcc 0.9.27, no optimizer).
-- HKDF over HMAC-BLAKE3 has no published test vectors.
+- **C4 OPEN — four sub-blockers:**
+  - C4.1 independent review — OPEN (hand-written X25519/BLAKE3)
+  - C4.2 compiler differential — OPEN (only tcc 0.9.27, no optimizer)
+  - C4.3 constant-time — NOT PROVEN (no leak detected; detection != proof)
+  - C4.4 **KDF validation — NOT PROVEN.** HKDF over HMAC-BLAKE3 is not a
+    standard instantiation; no published vectors apply and none were run.
+    Every hop key, link key and per-hop message id rests on it.
 - No formal analysis against a model such as Sphinx.
 
 ## 15. Test methodology

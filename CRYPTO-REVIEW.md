@@ -4,8 +4,16 @@ This document exists for an external cryptographer. It lists **only** the
 cryptographic surface, what has been verified, and what has not. Everything
 else about the project is deliberately out of scope here.
 
-**Please read the limitations section first.** Two of the four primitives are
+**Please read the limitations section first.** Three of the four primitives are
 hand-written, and that is the single largest risk in this codebase.
+
+> **KDF correctness and security: NOT PROVEN.**
+> The key derivation is HKDF (RFC 5869 construction) instantiated over
+> HMAC-BLAKE3. That is **not** a standard instantiation, so no published test
+> vectors apply and none have been run. Every onion hop key, link envelope key
+> and per-hop message id depends on it. The fact that BLAKE3 and X25519 pass
+> their own vectors does **not** validate this construction. Treat it as the
+> first thing to review.
 
 ---
 

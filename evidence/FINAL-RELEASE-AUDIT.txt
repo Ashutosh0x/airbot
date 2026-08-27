@@ -106,7 +106,9 @@
      software supply-chain compromise
      absence of independent cryptographic audit
 
-9. VERDICT: NOT RELEASE-READY (4 blocking conditions; C1 cleared)
+9. VERDICT: NOT RELEASE-READY
+   C1 cleared. C2 PARTIAL (real Tor transport, single-host relays).
+   C3, C4.1-C4.4, C5 done. Largest blocker: C4.
 
    Blocking conditions:
    C1 CLEARED. Committed 45349a2 on branch privacy-hardening and tagged
@@ -115,8 +117,24 @@
       or Tor onion services.
    C3 Relay keys use fingerprint pinning; security rests entirely on
       out-of-band fingerprint distribution. No signed directory/consensus.
-   C4 No independent cryptographic audit. X25519 and BLAKE3 are
-      hand-written; verified against OpenSSL and the official library, but
-      unreviewed. Side-channel status is NOT PROVEN.
+   C4 CRYPTOGRAPHIC ASSURANCE - four independent sub-blockers:
+      C4.1 independent review          OPEN - X25519 and BLAKE3 are
+           hand-written; they match OpenSSL and the reference library but
+           no cryptographer has reviewed them.
+      C4.2 compiler differential       OPEN - only tcc 0.9.27 (no optimizer)
+           is available. An optimizing compiler could transform the
+           branchless cswap; that is untested.
+      C4.3 constant-time proof         NOT PROVEN - no secret-dependent
+           timing detected (0/55 across 34,560 samples; 0 secret-dependent
+           branches in the machine code), but detection is not proof and
+           cache/microarchitectural channels were not measured.
+      C4.4 KDF validation              NOT PROVEN - the key derivation is
+           HKDF (RFC 5869 construction) instantiated over HMAC-BLAKE3.
+           HMAC-BLAKE3 is NOT a standard instantiation, so no published
+           vectors apply and NONE were run. Every hop key, link key and
+           per-hop message id depends on this unvalidated construction.
+           Passing BLAKE3 and X25519 vectors does NOT validate it.
+           Preferred fix: adopt a standardised KDF with published vectors
+           rather than specify and self-test a bespoke one.
    C5 Single-compiler evidence only (tcc 0.9.27, no optimizer). An
       optimizing compiler could transform the branchless cswap.
