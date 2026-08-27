@@ -1,0 +1,31 @@
+
+  EXPERIMENT 1 — FEATURE AUDIT
+  ==========================================================================
+  Fields present in the raw dataset: ['class', 'trial', 't_ms', 'bytes', 'dir']
+  'class' is the LABEL (never a feature). 'trial' is generation order
+  (never a feature). Everything below is derived only from t_ms/bytes/dir,
+  all of which a passive observer sees.
+
+  per-class means:
+  | feature      |    BURST |     IDLE |    LARGE |    SMALL |
+  |--------------|----------|----------|----------|----------|
+  | frame_count  |     3.00 |     0.00 |     1.00 |     1.00 |
+  | total_bytes  |  3252.00 |     0.00 |  1084.00 |  1084.00 |
+  | min_frame    |  1084.00 |     0.00 |  1084.00 |  1084.00 |
+  | max_frame    |  1084.00 |     0.00 |  1084.00 |  1084.00 |
+  | mean_frame   |  1084.00 |     0.00 |  1084.00 |  1084.00 |
+  | std_frame    |     0.00 |     0.00 |     0.00 |     0.00 |
+  | duration     |     8.00 |    47.22 |     2.18 |     2.23 |
+  | mean_gap     |     2.00 |    47.22 |     1.09 |     1.12 |
+  | std_gap      |     1.15 |     0.00 |     1.02 |     1.04 |
+  | first_gap    |     3.00 |    47.22 |     2.11 |     2.16 |
+  | last_gap     |     0.08 |    47.22 |     0.07 |     0.07 |
+  | n_events     |     5.00 |     2.00 |     3.00 |     3.00 |
+
+  DISCRIMINATION CHECK — does the feature separate LARGE from SMALL?
+    first_gap    LARGE=     2.11 SMALL=     2.16  d=0.194  no signal
+    std_gap      LARGE=     1.02 SMALL=     1.04  d=0.192  no signal
+    mean_gap     LARGE=     1.09 SMALL=     1.12  d=0.189  no signal
+    duration     LARGE=     2.18 SMALL=     2.23  d=0.189  no signal
+    last_gap     LARGE=     0.07 SMALL=     0.07  d=0.022  no signal
+    total_bytes  LARGE=  1084.00 SMALL=  1084.00  d=0.000  no signal

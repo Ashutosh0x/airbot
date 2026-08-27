@@ -1,0 +1,16 @@
+
+  EXPERIMENT 2 — FEATURE ABLATION (stratified 5-fold, 5 seeds, n=25)
+  ==================================================================
+  | feature set                | accuracy | 95% CI      |
+  |----------------------------|---------:|-------------|
+  | A: per-frame SIZE only     |    50.0% | +/-   0.0%  |
+  | B: SIZE + COUNT            |    75.0% | +/-   0.0%  |
+  | C: SIZE + COUNT + TIMING   |    74.1% | +/-   2.1%  |
+  | D: TIMING only             |    67.7% | +/-   1.9%  |
+  | E: COUNT only              |    75.0% | +/-   0.0%  |
+  | random baseline            |    25.0% |             |
+
+  READING
+    If A is at chance, per-frame size leaks nothing -> the constant
+    1084-byte envelope is doing its job.
+    Whichever set first lifts accuracy is the true leakage source.

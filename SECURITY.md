@@ -304,19 +304,28 @@ section 9. Nothing here is asserted without a test that produces it.
 | Protocol fingerprinting | No magic, no version, no type, no hop count. A 2-byte length prefix taking one of six values remains, and the six-value size distribution is itself a signature. **Statistical indistinguishability from ordinary traffic has NOT been demonstrated and is not claimed.** |
 | Timing correlation | Measured: immediate forwarding gives an attacker **100%** matching (baseline 2.5%). Batching into 250 ms rounds with shuffling reduces this to **18.8%** (mean anonymity set 5.3) at a cost of up to 250 ms per hop. Reduced, not solved. |
 
-### Measured metadata leakage (Phase 9)
+### Measured metadata leakage — finding TA-001 (OPEN)
 
-A classifier given only frame sizes, counts and timing from the production
-path separates protocol activity at **74.2%** against a 25% baseline.
+An observer with only frame sizes, counts and timing classifies protocol
+activity at **75.0%** against a 25% baseline (stratified 5-fold CV, 5 seeds).
+
+Feature ablation locates the leak precisely:
+
+| feature set | accuracy |
+|---|---:|
+| per-frame size only | 50.0% |
+| **count only** | **75.0%** ← ceiling reached here |
+| count + timing | 74.1% |
+| timing only | 67.7% |
 
 - **Payload size: PROTECTED.** 16 B vs 600 B is indistinguishable (53.3%,
-  chance). Both emit exactly 1084 bytes.
-- **Message count: NOT PROTECTED.** A 3-frame burst is perfectly separable
-  from a single message.
-- **Idle vs active: NOT PROTECTED.** Trivially separable by duration.
+  chance; Cohen's d = 0.000). The constant 1084-byte envelope hides a 37x
+  payload difference.
+- **Frame count: NOT PROTECTED.** Idle / one message / burst are separable.
+  Count alone reaches the ceiling; timing adds nothing beyond it.
 
-The constant-size envelope does the job it was designed for. There is no
-corresponding defence for how many messages are sent or when.
+The size defence works. There is no transmission-schedule defence.
+Tracked as [`security/findings/TA-001.md`](security/findings/TA-001.md).
 
 ### NOT PROTECTED — stated plainly
 
