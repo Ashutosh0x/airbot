@@ -126,6 +126,7 @@ void bench_extract_features(const FlowTrace *trace, FlowFeatures *features) {
         var_size += diff * diff;
         
         int sbin = trace->packets[p].size / 100;
+        if (sbin < 0)  sbin = 0;
         if (sbin > 15) sbin = 15;
         size_bins[sbin]++;
         
@@ -135,7 +136,13 @@ void bench_extract_features(const FlowTrace *trace, FlowFeatures *features) {
             var_iat += diff_iat * diff_iat;
             if (iat < 0.01) burst_pkts++;
             
+            /* Inter-arrival time can be NEGATIVE: the per-protocol exit-trace
+               jitter above perturbs each packet independently and appends
+               reordered packets, so timestamps are not monotonic. Without a
+               lower clamp this indexes BELOW iat_bins and corrupts the stack
+               (this was the cause of the `benchmark` segfault). */
             int ibin = (int)(iat * 100);
+            if (ibin < 0)  ibin = 0;
             if (ibin > 15) ibin = 15;
             iat_bins[ibin]++;
         }
@@ -380,7 +387,12 @@ void bench_run_comparison(BenchmarkComparison *cmp) {
         free(entry_traces);
         free(exit_traces);
         
-        /* Performance metrics (estimated from protocol properties) */
+        /* ASSUMED CONSTANTS - NOT MEASURED.
+         * These are hand-entered figures, not observations. They were
+         * previously presented under an "empirical" heading, which was
+         * wrong. Nothing here times a real Tor circuit or a real Airbot
+         * relay; `airbot bench-live` performs the measured comparison.
+         * Any scorecard row fed by these values is labelled ASSUMED. */
         if (p == 1) { cmp->latency_ms[p] = 10;  cmp->bandwidth_overhead[p] = 1.05; cmp->cpu_cycles[p] = 1.0; }
         if (p == 2) { cmp->latency_ms[p] = 300; cmp->bandwidth_overhead[p] = 3.00; cmp->cpu_cycles[p] = 5.0; }
         if (p == 3) { cmp->latency_ms[p] = 50;  cmp->bandwidth_overhead[p] = 1.20; cmp->cpu_cycles[p] = 2.0; }
@@ -394,7 +406,7 @@ void bench_run_comparison(BenchmarkComparison *cmp) {
 }
 
 void bench_print_scorecard(const BenchmarkComparison *cmp) {
-    printf("  ┌─── EMPIRICAL PRIVACY SCORECARD ─────────────────────\n");
+    printf("  ┌─── PRIVACY SCORECARD — SIMULATED TRACES ────────────\n");
     printf("  │\n");
     printf("  │  Metric              │ IPv4  │  Tor  │ Airbot │ A+Onion │ Winner\n");
     printf("  │  ────────────────────┼───────┼───────┼────────┼─────────┼───────\n");

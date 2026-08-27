@@ -1,0 +1,20 @@
+
+  PHASE 9 - X25519 TIMING DISTRIBUTION BY SECRET
+  ============================================================
+  | scalar class | median ms | p95 ms  | spread vs median |
+  |--------------|----------:|--------:|-----------------:|
+  | all zero     |    0.2001 |  0.2066 |             3.2% |
+  | all ones     |    0.1994 |  0.2060 |             3.3% |
+  | low bit      |    0.2009 |  0.2081 |             3.6% |
+  | 0xAA         |    0.2005 |  0.2070 |             3.2% |
+  | 0x55         |    0.2035 |  0.2278 |            11.9% |
+  | random       |    0.2014 |  0.3028 |            50.3% |
+  | random       |    0.2004 |  0.2084 |             4.0% |
+  | random       |    0.2048 |  0.3215 |            57.0% |
+
+  median spread across all scalar classes: 2.7%
+  interpretation: a large spread would indicate secret-dependent
+  timing. A small spread is NECESSARY but NOT SUFFICIENT evidence
+  of constant-time behaviour - cache and branch-predictor effects
+  are not visible to this measurement.
+

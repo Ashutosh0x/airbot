@@ -1,0 +1,9 @@
+--- confirmation run 1 ---
+  median spread across X25519 classes: 0.10%
+  significant pairs after correction: 0 / 55
+--- confirmation run 2 ---
+  median spread across X25519 classes: 0.10%
+  significant pairs after correction: 0 / 55
+--- confirmation run 3 ---
+  median spread across X25519 classes: 0.15%
+  significant pairs after correction: 0 / 55

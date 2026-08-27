@@ -1,0 +1,32 @@
+=== FAIL-CLOSED BATTERY (production binary) ===
+
+[1] legacy cleartext framer in privacy mode (must refuse):
+  [PASS] direct dial refused in privacy mode                 
+  [PASS] inbound listener refused in privacy mode            
+  [PASS] non-loopback proxy refused                          
+  [PASS] IPv6 literal refused by the family gate             
+  [PASS] bracketed IPv6 literal refused by the family gate   
+  [PASS] IPv6 dial refused end-to-end in privacy mode        
+
+[2] relay role refuses to run under AIRBOT_PRIVACY=1:
+relay: REFUSED - AIRBOT_PRIVACY=1 requests the privacy CLIENT
+       role, which has no inbound surface. A relay is public by
+
+[3] proxy pointed at a non-SOCKS listener (must refuse, no fallback):
+  RESULT                     : REFUSED
+  detail                     : no listener on 127.0.0.1:9
+
+[4] killing Tor mid-session -> must FAIL CLOSED:
+     tor killed, port 9050 closed
+
+  Target      : api.ipify.org/
+  REFUSED     : Tor SOCKS proxy unreachable
+  detail      : no listener on 127.0.0.1:9050
+  Result      : FAILED CLOSED (no direct connection attempted)
+
+
+[5] did ANY direct connection to the destination occur during refusal?
+  TCP    10.229.186.104:56469   172.67.74.152:443      TIME_WAIT
+     (empty = no direct connection was made)
+
+[6] DNS cache check - was the hostname resolved locally?

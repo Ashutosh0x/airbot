@@ -1,0 +1,13 @@
+=== EVIDENCE: real Tor validation, Thu Aug 27 04:48:05 IST 2026 ===
+
+[direct] real public IP:
+103.206.9.142
+
+[airbot->tor] IP the destination observed:
+  local DNS   : 0 lookups (must be 0)
+  --- destination reported ---
+  185.243.218.232
+
+
+[verify] is that address a Tor exit?
+{"IsTor":true,"IP":"192.42.116.117"}

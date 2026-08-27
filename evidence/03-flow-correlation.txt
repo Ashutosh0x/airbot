@@ -1,0 +1,11 @@
+  ingress events: 40   egress events: 40
+  distinct ingress sizes: [286]
+  distinct egress sizes : [286]
+  -> size alone separates flows: NO
+
+  CORRELATION METHOD : nearest-neighbour on arrival timestamp
+  ingress->egress correctly matched: 40/40 = 100.0%
+  random-chance baseline for this matching: 2.5%
+  observed inter-arrival gaps: min=0.014s median=0.032s max=0.089s
+
+  RESULT: TIMING CORRELATION SUCCEEDS - flows are linkable by timing alone

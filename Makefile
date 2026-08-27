@@ -6,6 +6,7 @@
 CC      = gcc
 CFLAGS  = -std=c99 -Wall -Wextra -Wpedantic -O2
 LDFLAGS =
+LDLIBS  = -lws2_32
 DEBUG_CFLAGS = -std=c99 -Wall -Wextra -Wpedantic -g -O0 -DDEBUG
 
 # Source directory
@@ -54,7 +55,7 @@ TEST_TARGET = $(BUILDDIR)/test_runner
 
 # ─── Targets ────────────────────────────────────────────────
 
-.PHONY: all clean test debug dirs
+.PHONY: all clean test debug dirs privacy-check
 
 all: dirs $(TARGET)
 	@echo "=== Airbot built successfully ==="
@@ -68,7 +69,7 @@ dirs:
 	@if not exist $(BUILDDIR) mkdir $(BUILDDIR)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LDLIBS)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.c | dirs
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -78,7 +79,30 @@ test: dirs $(TEST_TARGET)
 	$(TEST_TARGET)
 
 $(TEST_TARGET): $(TEST_SRCS) $(LIB_OBJS)
-	$(CC) $(CFLAGS) -I$(SRCDIR) -o $@ $^
+	$(CC) $(CFLAGS) -I$(SRCDIR) -o $@ $^ $(LDLIBS)
+
+# Privacy invariants + official crypto vectors. Fails the build on violation.
+# Full security gate. Any failure fails the build.
+privacy-check: all
+	@echo "--- static security audit ---"
+	sh tools/static-audit.sh
+	@echo "--- cryptographic vectors (BLAKE3 / RFC 7539 / RFC 8439 / X25519) ---"
+	$(TARGET) crypto-test
+	@echo "--- per-hop onion, key separation, forward secrecy, replay ---"
+	$(TARGET) onion-test
+	@echo "--- privacy invariants (fail-closed, DNS, IPv4/IPv6, Tor) ---"
+	$(TARGET) privacy-test
+	@echo "--- adversarial / red-team suite ---"
+	$(TARGET) adversarial-test
+	@echo "--- relay key authentication (substitution / expiry / rollback) ---"
+	$(TARGET) relaykey-test
+	@echo "--- production channel codec ---"
+	$(TARGET) channel-test
+	@echo "--- relay batching (bounds, backpressure, shuffle) ---"
+	$(TARGET) batch-test
+	@echo "--- LIVE socket integration: real 3-relay onion chain ---"
+	$(TARGET) live-test
+	@echo "=== ALL SECURITY GATES PASSED ==="
 
 clean:
 	@if exist $(BUILDDIR) rmdir /s /q $(BUILDDIR)
@@ -102,4 +126,6 @@ $(BUILDDIR)/disassembler.o: $(SRCDIR)/disassembler.c $(SRCDIR)/disassembler.h $(
 $(BUILDDIR)/metrics.o:      $(SRCDIR)/metrics.c $(SRCDIR)/metrics.h $(SRCDIR)/eiu.h
 $(BUILDDIR)/experiments.o:  $(SRCDIR)/experiments.c $(SRCDIR)/experiments.h $(SRCDIR)/eiu.h $(SRCDIR)/vm.h
 $(BUILDDIR)/matrix.o:       $(SRCDIR)/matrix.c $(SRCDIR)/matrix.h $(SRCDIR)/eiu.h $(SRCDIR)/environment.h
+$(BUILDDIR)/transport.o:    $(SRCDIR)/transport.c $(SRCDIR)/transport.h $(SRCDIR)/blake3.h
+$(BUILDDIR)/netcmd.o:       $(SRCDIR)/netcmd.c $(SRCDIR)/netcmd.h $(SRCDIR)/transport.h $(SRCDIR)/eiu.h
 $(BUILDDIR)/main.o:         $(SRCDIR)/main.c

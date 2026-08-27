@@ -1,0 +1,12 @@
+unique hostname: airbot-dnsleak-probe-1787786300.example.com
+=== privacy mode dial to a name that has NEVER been resolved on this host ===
+
+  AIRBOT PRIVACY PROBE (fail-closed)
+  --------------------------------------------------
+  Target      : airbot-dnsleak-probe-1787786300.example.com:80  (name resolved by Tor, not locally)
+  Proxy       : 127.0.0.1:9050
+  REFUSED     : malformed or refused CONNECT reply
+  Result      : FAILED CLOSED - no direct connection attempted
+  local DNS   : 0 lookups (must be 0)
+  direct dials: 0 denied
+

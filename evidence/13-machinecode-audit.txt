@@ -1,0 +1,50 @@
+
+  PHASE 11 - X25519 MACHINE-CODE AUDIT
+  ======================================================================
+  object   : build/x25519_audit.o
+  format   : ELF64 (TinyCC emits ELF even on Windows)
+  machine  : 0x3e (x86-64)
+  compiler : tcc 0.9.27, NO optimizer, no -O flags
+  .text    : 10539 bytes
+
+  | function            | bytes | instrs | cond-jmp | cmov | vartime | indirect |
+  |---------------------|------:|-------:|---------:|-----:|--------:|---------:|
+  | fe_0                |    64 |     17 |        0 |    0 |       0 |        0 |
+  | fe_1                |    67 |     18 |        0 |    0 |       0 |        0 |
+  | fe_copy             |    59 |     16 |        0 |    0 |       0 |        0 |
+  | fe_add              |   133 |     41 |        1 |    0 |       0 |        0 |
+  | fe_sub              |   133 |     41 |        1 |    0 |       0 |        0 |
+  | fe_cswap            |   179 |     58 |        1 |    0 |       0 |        0 |
+  | fe_mul              |  3555 |    754 |        0 |    0 |       0 |        0 |
+  | fe_sq               |    53 |     16 |        0 |    0 |       0 |        0 |
+  | fe_mul121666        |  1033 |    247 |        0 |    0 |       0 |        0 |
+  | fe_invert           |  1321 |    342 |        8 |    0 |       0 |        0 |
+  | load_3              |    72 |     22 |        0 |    0 |       0 |        0 |
+  | load_4              |    93 |     28 |        0 |    0 |       0 |        0 |
+  | fe_frombytes        |   992 |    246 |        0 |    0 |       0 |        0 |
+  | fe_tobytes          |  1328 |    407 |        0 |    0 |       0 |        0 |
+  | x25519_scalarmult   |  1295 |    304 |        1 |    0 |       0 |        0 |
+  | x25519_base         |    56 |     16 |        0 |    0 |       0 |        0 |
+  | x25519_is_zero      |   106 |     32 |        1 |    0 |       0 |        0 |
+
+  audited 17 functions, 2605 instructions
+  conditional branches : 13
+  cmov                 : 0
+  div/idiv/rep/loop    : 0
+  indirect call/jmp    : 0
+  assembly saved       : evidence/x25519-tcc-x86_64.asm (2605 lines)
+
+  FINDINGS requiring classification:
+    fe_add             0xe3     jge     0x141                      CONDITIONAL BRANCH
+    fe_sub             0x168    jge     0x1c6                      CONDITIONAL BRANCH
+    fe_cswap           0x1fa    jge     0x279                      CONDITIONAL BRANCH
+    fe_invert          0x15a0   jge     0x15da                     CONDITIONAL BRANCH
+    fe_invert          0x1627   jge     0x1661                     CONDITIONAL BRANCH
+    fe_invert          0x16b1   jge     0x16f1                     CONDITIONAL BRANCH
+    fe_invert          0x1741   jge     0x177b                     CONDITIONAL BRANCH
+    fe_invert          0x17c8   jge     0x1802                     CONDITIONAL BRANCH
+    fe_invert          0x1852   jge     0x1892                     CONDITIONAL BRANCH
+    fe_invert          0x18e2   jge     0x191c                     CONDITIONAL BRANCH
+    fe_invert          0x1969   jge     0x19a3                     CONDITIONAL BRANCH
+    x25519_scalarmult  0x245f   jl      0x27b8                     CONDITIONAL BRANCH
+    x25519_is_zero     0x28e6   jge     0x291a                     CONDITIONAL BRANCH

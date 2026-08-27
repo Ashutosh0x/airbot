@@ -1,0 +1,120 @@
+================================================================
+ AIRBOT — FINAL RELEASE SECURITY AUDIT
+ Thu Aug 27 11:58:38 IST 2026
+================================================================
+
+1. ARTIFACT BINDING
+   compiler   : tcc 0.9.27 (x86_64 Windows), no optimizer
+   flags      : -Isrc -lws2_32
+   git rev    : acca2b5 — working tree DIRTY
+   binary     : build/airbot-net.exe
+   SHA-256    : 9e013f20309a7fabe3698fe11acc72969531756ebb63722f0659a73eb2b9a56a
+   src/x25519.c             9b58cb3151de2ffee01b05f68fe4e92f...
+   src/onionx.c             57106c434002b20383120b4859b7da82...
+   src/airbchan.c           6852b369e6241d3e12f6d728f8253d90...
+   src/batch.c              50fdd612661c70c62f968b8490b8db87...
+   src/relaydir.c           997742f227313805939c4131f0edb18c...
+   src/blake3.c             cde40644c5db00ae844b6c2f6f0e9a6e...
+   src/chacha20.c           1feb50d476acf1a30b2e530d41b41fd2...
+   src/netpolicy.c          1e5ccd7c714831fc3cb51000ae44c497...
+   src/transport.c          751cd7fd2beb6cbb43595fb33343e044...
+   src/livetest.c           e1dc4727e45dc789851b469bd3d594cd...
+   tools/static-audit.sh    7cd7212f30cad09cc2b8645d99d4bc54...
+
+2. SECURITY REGRESSION (exact binary above)
+   crypto-test        exit=0 Passed: 11     PASS
+   onion-test         exit=0                PASS
+   channel-test       exit=0                PASS
+   batch-test         exit=0                PASS
+   relaykey-test      exit=0                PASS
+   privacy-test       exit=0 Passed: 42     PASS
+   adversarial-test   exit=0 Passed: 28     PASS
+   live-test          exit=0 Passed: 28     PASS
+   static-audit       exit=0 (7/7)          PASS
+   hop-concealment    exit=0 20/20 constant  PASS
+   blake3-oracle      30/30                 PASS
+   x25519 RFC+ECDH    RFC + 8/8             PASS
+   x25519 vs OpenSSL  10/10 classes         PASS
+   fuzz               68,827 / 0 accepted   PASS
+
+3. LIVE-WIRE (real Tor, production binary)
+   real client IP observed locally : 157.35.7.146
+   IP seen by DESTINATION          : 109.71.252.182, then 212.95.50.243
+   -> distinct exits => per-connection circuit isolation
+   local DNS lookups               : 0
+   unique hostname in DNS cache    : ABSENT (never resolved locally)
+
+4. ONION PATH (3 relays, real sockets)
+   all 3 links constant 1084 B; no AIRB magic, no plaintext payload
+   A peels only A; B only B; C is exit and recovers payload
+   wrong-key / tampered / padding-tamper / replay / cross-epoch: REJECTED
+
+5. BATCHING (production relay, not harness)
+   timing correlation  100.0% -> 13.0%   (baseline 1.0%)
+   mean anonymity set    1.0  -> 7.8
+   latency mean 119.3 ms, p95 221.7, p99 237.8, max 253.7
+
+6. TIMING SIDE-CHANNEL
+   34,560 samples, 0/55 significant after Bonferroni; spread 0.05%
+   3 confirmation runs: 0.10%, 0.10%, 0.15% — all 0/55
+   machine code: 0 secret-dependent branches, 0 secret-indexed memory,
+                 branchless cswap, 0 variable-time instructions
+
+7. BUGS FOUND DURING THIS AUDIT (all fixed)
+   B1 CRITICAL (tooling): static-audit sections contained a LITERAL BACKSPACE
+      byte (0x08) where a regex "\b" was intended, silently disabling two
+      rules. Section 5 therefore reported SAFE while two unredacted peer-IP
+      prints existed. Control chars stripped; audit now correctly FAILS on
+      them, and the two prints were routed through netlog_safe_addr().
+   B2 (test): live-test scanned all 1084 bytes for a 2-byte EIU magic.
+      Measured collision rate 1.57%/link => 4.65%/run, causing a genuinely
+      flaky failure. Replaced with a structural offset check. 8/8 stable.
+      The 4-byte AIRB scan collides 0/20000 and was kept.
+
+8. FINAL SCORECARD
+   PROVEN
+     live onion encryption on the production socket path
+     per-hop key separation (A/B cannot read payload or each other's layers)
+     hop-index concealment (1084 B constant, 20/20 cases)
+     replay / cross-session / wrong-key / tamper rejection
+     Tor enforcement + fail-closed with no direct fallback
+     DNS protection (0 local lookups; unique hostname never cached)
+     IPv6 explicitly denied in privacy mode
+     no persistent client/session/device identifier
+     crypto provenance: BLAKE3 30/30, X25519 RFC+OpenSSL, ChaCha20-Poly1305
+     fuzz robustness: 68,827 cases, 0 accepted, 0 crashes
+
+   PARTIALLY PROVEN
+     forward secrecy (ephemeral erased; no protection if key seized live)
+     relay key authentication (fingerprint pinning, NOT a signed directory)
+     live batching (100% -> 13.0%, measured on production; not eliminated)
+     traffic-analysis resistance (size nil; timing reduced, not solved)
+     side-channel resistance (no leak detected; NOT formally constant-time)
+
+   NOT TESTED
+     real Internet multi-hop relay chain (loopback only; host behind NAT)
+     compiler differential (only tcc available; no gcc/clang/MSVC)
+     cache / microarchitectural leakage
+
+   NOT PROTECTED
+     global passive observer
+     endpoint compromise, malicious OS, EDR
+     malicious exit relay (sees payload by construction)
+     traffic confirmation by a suitably resourced adversary
+     software supply-chain compromise
+     absence of independent cryptographic audit
+
+9. VERDICT: NOT RELEASE-READY
+
+   Blocking conditions:
+   C1 Working tree is DIRTY. No commit or tag binds this evidence to a
+      reproducible source state.
+   C2 Real Internet multi-hop NOT TESTED. Needs >=3 hosts with public IPs
+      or Tor onion services.
+   C3 Relay keys use fingerprint pinning; security rests entirely on
+      out-of-band fingerprint distribution. No signed directory/consensus.
+   C4 No independent cryptographic audit. X25519 and BLAKE3 are
+      hand-written; verified against OpenSSL and the official library, but
+      unreviewed. Side-channel status is NOT PROVEN.
+   C5 Single-compiler evidence only (tcc 0.9.27, no optimizer). An
+      optimizing compiler could transform the branchless cswap.

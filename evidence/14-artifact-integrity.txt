@@ -1,0 +1,15 @@
+=== ARTIFACT INTEGRITY (binds audit evidence to exact artifacts) ===
+date        : Thu Aug 27 11:37:53 IST 2026
+compiler    : tcc 0.9.27 (x86_64 Windows), NO optimizer
+flags       : -Isrc -lws2_32
+git rev     : acca2b5 (working tree DIRTY)
+
+build/airbot-net.exe     30e4349073d0f09034cafc2eeae4f787ae2ff9e8bc462d29bfddbb2c2da05489
+build/x25519_audit.o     42257dd5d780a07da129ced807afd1fe82d8c334be7177b1750dc95d9b5df61a
+src/x25519.c             9b58cb3151de2ffee01b05f68fe4e92fa9039c4b67cc732734869484ec64dcac
+src/onionx.c             57106c434002b20383120b4859b7da8274360608196c0a45954145aec4309ee9
+src/airbchan.c           6852b369e6241d3e12f6d728f8253d90761f7caa5c09d153c1c66616d9828ac0
+src/batch.c              50fdd612661c70c62f968b8490b8db87fbd920f76bf3a3604d11680206e1e09d
+src/relaydir.c           997742f227313805939c4131f0edb18cfa8a9c8c30270fc38df25d7d59587d1f
+src/blake3.c             cde40644c5db00ae844b6c2f6f0e9a6e1599f7b4fb98ed8fee5684b6dbe5f164
+src/chacha20.c           1feb50d476acf1a30b2e530d41b41fd24d6487ebe9d623ff3aff2c77d07d4cc0

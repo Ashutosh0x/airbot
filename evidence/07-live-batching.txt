@@ -1,0 +1,30 @@
+
+  PHASE 1 - LIVE BATCHING CORRELATION (production relay)
+  ============================================================
+  Driving airbchan_send + batch_* over real sockets.
+  Tie-breaking in the matcher is RANDOM, not index-order.
+
+  running MODE A (batching disabled)...
+  running MODE B (production batching, 8 frames / 250 ms)...
+
+  | Metric                    | No batching | Live batching |
+  |---------------------------|------------:|--------------:|
+  | timing correlation        |    100.0%   |      13.0%    |
+  | mean anonymity set        |      1.0    |       7.8     |
+  | ordering preserved        |    100.0%   |      88.6%    |
+  | distinct egress sizes     |        1    |         1     |
+  | size correlation          |     none    |      none     |
+
+  batching latency (ms), production path:
+  | mode          |   mean |  median |    p95 |    p99 |    max |
+  |---------------|-------:|--------:|-------:|-------:|-------:|
+  | no batching   |    0.0 |     0.0 |    0.0 |    0.0 |    0.0 |
+  | live batching |  119.8 |   137.2 |  221.2 |  238.2 |  253.5 |
+
+  samples: mode A 100 in / 100 out, mode B 100 in / 100 out
+  random-chance baseline for 100 flows: 1.0%
+
+  Reading: size correlation is nil because every frame is the
+  constant 1084-byte envelope. Timing is the remaining channel;
+  batching trades latency for ambiguity and does NOT eliminate it.
+

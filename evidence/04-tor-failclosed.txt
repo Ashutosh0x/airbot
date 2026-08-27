@@ -1,0 +1,23 @@
+=== TOR FAIL-CLOSED EVIDENCE ===
+
+[1] Tor RUNNING -> privacy path validated:
+  RESULT                     : VALIDATED
+  detail                     : privacy path validated
+
+[2] killing Tor...
+     -> tor process TERMINATED, port 9050 no longer listening
+
+[3] Tor DOWN -> preflight must REFUSE:
+  RESULT                     : REFUSED
+  detail                     : no listener on 127.0.0.1:9050
+     exit=0
+
+[4] Tor DOWN -> fetch must FAIL CLOSED, not fall back to direct:
+  Target      : api.ipify.org/
+  REFUSED     : Tor SOCKS proxy unreachable
+  detail      : no listener on 127.0.0.1:9050
+  Result      : FAILED CLOSED (no direct connection attempted)
+
+
+[5] did ANY connection to api.ipify.org occur during the refusal?
+     (empty above = no direct connection was made)

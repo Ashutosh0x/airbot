@@ -27,6 +27,16 @@
 #include "privacy.h"
 #include "onion.h"
 #include "benchmark.h"
+#include "netcmd.h"
+#include "netpolicy.h"
+#include "privtest.h"
+#include "advtest.h"
+#include "onionx.h"
+#include "livetest.h"
+#include "relaydir.h"
+#include "airbchan.h"
+#include "batch.h"
+#include "privframe.h"
 #include "crypto_test.h"
 
 /* ═══════════════════════════════════════════════════════════════
@@ -66,8 +76,22 @@ static void print_usage(void) {
     printf("  visibility [--observer ISP|DPI|PASSIVE]     Visibility analysis\n");
     printf("  privacy [--observer ISP|DPI|PASSIVE]        Multi-protocol privacy comparison\n");
     printf("  onion                                      Onion routing simulation\n");
-    printf("  benchmark                                  Empirical Tor vs Airbot comparison\n");
-    printf("  info                                       System information\n");
+    printf("  benchmark                                  Tor vs Airbot on SIMULATED traces\n");
+    printf("  privacy-preflight [--proxy H:P]            Validate the Tor privacy path
+  privacy-probe --host H [--port N]          Tor-only probe (fails closed)
+  privacy-fetch --host H [--path P]          Fetch via Tor; shows observed IP
+  privacy-test                               Privacy invariant harness
+  adversarial-test                           Red-team / attack suite
+  onion-test                                 Per-hop onion self-test
+  live-test                                  LIVE socket 3-relay integration
+  relaykey-test                              Relay key authentication tests
+  channel-test                               Production channel codec test
+  batch-test                                 Relay batching queue tests
+  net-probe --host H [--port N]               Live TCP reachability probe
+  net-echo  --host H [--port N]               EIU round-trip over the internet
+  net-send  --host H [--port N] [--hops N]    Send a framed EIU to a relay
+  relay     --port N [--next H:P] [--count N] Run a real network relay
+  info                                       System information\n");
     printf("  help                                       Show this help\n");
     printf("\n");
 }
@@ -668,7 +692,7 @@ static int cmd_onion(void) {
 static int cmd_benchmark(void) {
     printf("\n");
     printf("  ╔════════════════════════════════════════════════════════════════╗\n");
-    printf("  ║  EMPIRICAL PRIVACY BENCHMARK                                 ║\n");
+    printf("  ║  PRIVACY BENCHMARK — SIMULATED                               ║\n");
     printf("  ║  IPv4 vs Tor vs Airbot vs Airbot+Onion                       ║\n");
     printf("  ║  Classifier-based detectability + entry/exit correlation      ║\n");
     printf("  ╚════════════════════════════════════════════════════════════════╝\n");
@@ -720,6 +744,11 @@ static int cmd_info(void) {
  * ═══════════════════════════════════════════════════════════════ */
 
 int main(int argc, char **argv) {
+    /* Privacy configuration is read before any command runs so that the
+       policy gate is already active for every code path below. */
+    netpolicy_init_from_env();
+    privframe_set_key_from_env();
+
     if (argc < 2) {
         print_banner();
         print_usage();
@@ -742,6 +771,20 @@ int main(int argc, char **argv) {
     if (strcmp(cmd, "onion") == 0)       return cmd_onion();
     if (strcmp(cmd, "benchmark") == 0)   return cmd_benchmark();
     if (strcmp(cmd, "crypto-test") == 0) return crypto_test_run_all();
+    if (strcmp(cmd, "privacy-preflight") == 0) return cmd_privacy_preflight(argc, argv);
+    if (strcmp(cmd, "privacy-fetch") == 0)     return cmd_privacy_fetch(argc, argv);
+    if (strcmp(cmd, "privacy-probe") == 0)     return cmd_privacy_probe(argc, argv);
+    if (strcmp(cmd, "privacy-test") == 0)      return privtest_run_all();
+    if (strcmp(cmd, "adversarial-test") == 0)  return advtest_run_all();
+    if (strcmp(cmd, "onion-test") == 0)        return ox_selftest() == 0 ? 0 : 1;
+    if (strcmp(cmd, "live-test") == 0)         return livetest_run_all();
+    if (strcmp(cmd, "relaykey-test") == 0)     return rd_selftest() == 0 ? 0 : 1;
+    if (strcmp(cmd, "channel-test") == 0)      return airbchan_selftest() == 0 ? 0 : 1;
+    if (strcmp(cmd, "batch-test") == 0)        return batch_selftest() == 0 ? 0 : 1;
+    if (strcmp(cmd, "net-probe") == 0)   return cmd_net_probe(argc, argv);
+    if (strcmp(cmd, "net-echo") == 0)    return cmd_net_echo(argc, argv);
+    if (strcmp(cmd, "net-send") == 0)    return cmd_net_send(argc, argv);
+    if (strcmp(cmd, "relay") == 0)       return cmd_relay(argc, argv);
     if (strcmp(cmd, "info") == 0)         return cmd_info();
     if (strcmp(cmd, "help") == 0)         { print_usage(); return 0; }
 

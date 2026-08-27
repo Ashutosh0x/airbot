@@ -1,0 +1,17 @@
+  Phase 8/9 - FLOW CORRELATION: BEFORE vs AFTER
+  ----------------------------------------------------------
+  immediate forward (current relay) 
+     events in/out        : 32 / 32
+     observed group sizes : [1, 1, 1, 1, 1, 1, 1, 1]
+     mean anonymity set   : 1.0
+     best-case attacker   : 100.0% (1/set)
+  batched round + shuffle (250 ms)  
+     events in/out        : 32 / 32
+     observed group sizes : [6, 6, 6, 6, 5, 3]
+     mean anonymity set   : 5.3
+     best-case attacker   : 18.8% (1/set)
+  ----------------------------------------------------------
+  Interpretation: batching raises the attacker's per-event ambiguity
+  from 1 candidate to several. It does NOT defeat a global observer,
+  who sees both ends over long periods and aggregates across batches.
+  Cost: up to one round (250 ms) of added latency per hop.

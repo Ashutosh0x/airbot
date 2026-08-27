@@ -1,0 +1,14 @@
+=== AIRBOT BUILD PROVENANCE ===
+date            : Thu Aug 27 11:31:00 IST 2026
+compiler        : tcc version 0.9.27 (x86_64 Windows)
+compiler path   : tools/tcc/tcc.exe (bundled; no gcc/clang/cl on PATH)
+target arch     : x86_64 (PE/COFF, Windows)
+optimization    : TinyCC has NO optimizer and NO -O flags
+build flags     : -Isrc -lws2_32
+config          : release (no -g, no -DDEBUG)
+platform        : Windows 11 Home Single Language 10.0.26200
+binary          : build/airbot-net.exe
+binary size     : 264704 bytes
+sources         : 37 .c files
+git revision    : acca2b5 (working tree DIRTY - changes uncommitted)
+x25519.c sha256 : 4a7cca83851f4d64c0513712c78269be2ced623a60719ed2954a72582119afe3

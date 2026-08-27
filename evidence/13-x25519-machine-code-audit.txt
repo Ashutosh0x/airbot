@@ -1,0 +1,82 @@
+================================================================
+ X25519 MACHINE-CODE AUDIT — CONSOLIDATED REPORT
+================================================================
+
+A. PRODUCTION BUILD IDENTITY
+date            : Thu Aug 27 11:31:00 IST 2026
+compiler        : tcc version 0.9.27 (x86_64 Windows)
+compiler path   : tools/tcc/tcc.exe (bundled; no gcc/clang/cl on PATH)
+target arch     : x86_64 (PE/COFF, Windows)
+optimization    : TinyCC has NO optimizer and NO -O flags
+build flags     : -Isrc -lws2_32
+config          : release (no -g, no -DDEBUG)
+platform        : Windows 11 Home Single Language 10.0.26200
+binary          : build/airbot-net.exe
+binary size     : 264704 bytes
+sources         : 37 .c files
+git revision    : acca2b5 (working tree DIRTY - changes uncommitted)
+x25519.c sha256 : 4a7cca83851f4d64c0513712c78269be2ced623a60719ed2954a72582119afe3
+   binary sha256 : 30e4349073d0f09034cafc2eeae4f787ae2ff9e8bc462d29bfddbb2c2da05489
+
+B. X25519 CALL GRAPH        -> evidence/13-x25519-callgraph.txt
+   4 X25519 ops for 1 hop, 10 for 4 hops (2/hop in ox_wrap + 2 in envelope_seal)
+
+C. TOOLCHAIN / DISASSEMBLER
+   objdump/llvm-objdump/dumpbin/ndisasm : NOT PRESENT on this machine
+   tcc -S                                : NOT SUPPORTED by TinyCC
+   METHOD USED: TinyCC emits ELF64 objects on Windows (0x7fELF, e_machine
+   0x3e); parsed with a hand-written ELF64 reader and disassembled with
+   capstone 5.0.7 (Python). Full listing: evidence/x25519-tcc-x86_64.asm
+
+D. MONTGOMERY LADDER
+   mov eax,0xfe (254) -> counter; cmp eax,0; jl exit.
+   255 iterations ALWAYS, independent of scalar Hamming weight.  FIXED SCHEDULE
+
+E. CONDITIONAL SWAP
+   mov eax,0 / sub eax,ecx  => mask = -b, arithmetic.
+   No branch on the scalar bit, no cmov, indexing is i*4 from a public
+   counter.  RESULT: BRANCHLESS (option A), not a secret-dependent branch.
+
+F. SECRET-DEPENDENT BRANCHES
+   13 conditional branches, ALL loop back-edges on public counters
+   (cmp eax,0xa; jge = i<10).  Secret-dependent branches: NONE FOUND
+
+G. SECRET-DEPENDENT MEMORY
+   All effective addresses are stack offsets or public-counter indices.
+   No array[secret], no lookup tables.  RESULT: NONE FOUND
+
+H. LOOPS
+   ladder 255 (public) | fe_* 10 (constant) | fe_invert 5/10/20/50/100 (literal)
+   Secret-dependent loop bounds: NONE FOUND
+
+I. VARIABLE-TIME ARITHMETIC
+   FINDING: 'pos / 8' compiled to a real idiv (TinyCC has no optimizer).
+   Dividend was the PUBLIC loop counter -> not a secret leak, but idiv is
+   variable-latency. Changed to 'pos >> 3'. idiv count now 0.
+   div/idiv/rep/loop in audited code: 0
+
+J. SOURCE <-> ASSEMBLY CROSS-CHECK
+   cswap, scalar-bit extraction, reduction, serialization all verified to
+   match source intent; no compiler transformation introduced a branch.
+
+K. EXISTING TIMING EVIDENCE (supporting only, not proof)
+   34,560 samples, 16 scalars/class, interleaved+shuffled, CPU pinned
+   median spread 0.05%; 0/55 significant after Bonferroni
+   3 confirmation runs: 0.10%, 0.10%, 0.15% - all 0/55
+   wrap() payload-independence: 0.18% spread across 8 payload sizes
+
+L. PRODUCTION REGRESSION: 14/14 suites pass on the hashed binary
+
+M. BINARY HASHES -> evidence/14-artifact-integrity.txt
+
+N. FINAL ASSESSMENT
+   Functional correctness is strongly supported by RFC 7748 and OpenSSL
+   interoperability tests.
+   Controlled timing experiments detected no scalar-dependent timing
+   difference.
+   Machine-code inspection found NO secret-dependent branches, NO
+   secret-dependent memory accesses, NO secret-dependent loop bounds, a
+   branchless conditional swap, and one variable-time instruction on a
+   PUBLIC operand which has since been removed.
+   These results do not constitute a formal proof of constant-time
+   execution or complete side-channel resistance.

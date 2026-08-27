@@ -1,0 +1,17 @@
+=== LIVE-WIRE PROOF (production binary, real Tor) ===
+
+[1] preflight against real Tor:
+  RESULT                     : VALIDATED
+  detail                     : privacy path validated
+
+[2] real IP (direct):
+157.35.7.146
+[3] IP the DESTINATION observed via airbot privacy-fetch:
+  Elapsed     : 777 ms
+  local DNS   : 0 lookups (must be 0)
+  --- destination reported ---
+  109.71.252.182
+
+[4] second fetch - circuit isolation (should differ):
+  212.95.50.243
+

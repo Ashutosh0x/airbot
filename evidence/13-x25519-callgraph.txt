@@ -1,0 +1,41 @@
+=== X25519 PRODUCTION CALL GRAPH ===
+
+Entry points actually reached by the production binary:
+
+  airbchan_send()            [src/airbchan.c]
+    -> ox_wrap()             [src/onionx.c]   per hop:
+         -> csprng_bytes()                    ephemeral secret
+         -> x25519_base()      [x25519.c]     eph_pk = [eph_sk]B
+              -> x25519_scalarmult()
+         -> derive_hop_key()   [onionx.c]
+              -> x25519_scalarmult()          shared = [eph_sk]relay_pk
+              -> hkdf32 -> hmac_blake3 -> blake3_*
+         -> chacha20_poly1305_encrypt()
+    -> envelope_seal()       [airbchan.c]
+         -> x25519_base()                     link eph key
+         -> ox_derive_labeled_key()
+              -> x25519_scalarmult()          link shared
+         -> chacha20_poly1305_encrypt()
+
+  airbchan_recv()            [src/airbchan.c]
+    -> envelope_open()
+         -> ox_derive_labeled_key() -> x25519_scalarmult()
+         -> chacha20_poly1305_decrypt()
+    -> ox_peel()             [src/onionx.c]
+         -> derive_hop_key() -> x25519_scalarmult()
+         -> chacha20_poly1305_decrypt()
+         -> ox_replay_check()
+
+x25519_scalarmult internal call tree (the audited path):
+  x25519_scalarmult
+    fe_frombytes  -> load_3, load_4
+    fe_1, fe_0, fe_copy
+    [ladder x255] fe_cswap, fe_sub, fe_add, fe_mul, fe_sq, fe_mul121666
+    fe_invert     -> fe_sq, fe_mul
+    fe_tobytes
+
+X25519 ops per message:
+  1 hop(s): 2 in ox_wrap (base+agree per hop) + 2 in envelope_seal = 4
+  2 hop(s): 4 in ox_wrap (base+agree per hop) + 2 in envelope_seal = 6
+  3 hop(s): 6 in ox_wrap (base+agree per hop) + 2 in envelope_seal = 8
+  4 hop(s): 8 in ox_wrap (base+agree per hop) + 2 in envelope_seal = 10
