@@ -6,7 +6,8 @@
 1. ARTIFACT BINDING
    compiler   : tcc 0.9.27 (x86_64 Windows), no optimizer
    flags      : -Isrc -lws2_32
-   git rev    : acca2b5 — working tree DIRTY
+   git rev    : 45349a2 (branch privacy-hardening, tag audit-2026-08-27)
+   tree state : CLEAN — evidence bound to a reproducible source state
    binary     : build/airbot-net.exe
    SHA-256    : 9e013f20309a7fabe3698fe11acc72969531756ebb63722f0659a73eb2b9a56a
    src/x25519.c             9b58cb3151de2ffee01b05f68fe4e92f...
@@ -22,6 +23,7 @@
    tools/static-audit.sh    7cd7212f30cad09cc2b8645d99d4bc54...
 
 2. SECURITY REGRESSION (exact binary above)
+   build reproducibility: two consecutive builds byte-identical (verified)
    crypto-test        exit=0 Passed: 11     PASS
    onion-test         exit=0                PASS
    channel-test       exit=0                PASS
@@ -104,11 +106,11 @@
      software supply-chain compromise
      absence of independent cryptographic audit
 
-9. VERDICT: NOT RELEASE-READY
+9. VERDICT: NOT RELEASE-READY (4 blocking conditions; C1 cleared)
 
    Blocking conditions:
-   C1 Working tree is DIRTY. No commit or tag binds this evidence to a
-      reproducible source state.
+   C1 CLEARED. Committed 45349a2 on branch privacy-hardening and tagged
+      audit-2026-08-27; the tree is clean and the evidence is bound to it.
    C2 Real Internet multi-hop NOT TESTED. Needs >=3 hosts with public IPs
       or Tor onion services.
    C3 Relay keys use fingerprint pinning; security rests entirely on
