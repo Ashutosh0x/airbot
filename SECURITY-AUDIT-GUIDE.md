@@ -67,7 +67,8 @@ counter, no digest, no length of the real payload.
 ## 5–7. Keys, nonces, onion construction
 
 See `CRYPTO-REVIEW.md` §2–5. Summary: fresh ephemeral X25519 per hop per
-message; HKDF with distinct `info` labels for onion vs link keys; random
+message; HKDF-SHA256 (RFC 5869) with distinct `info` labels for onion vs
+link keys; random
 nonces, never counters; ephemeral secrets erased after derivation.
 
 ## 8. Relay processing
@@ -131,9 +132,9 @@ regardless of application-level redaction. Airbot cannot change this.
   - C4.1 independent review — OPEN (hand-written X25519/BLAKE3)
   - C4.2 compiler differential — OPEN (only tcc 0.9.27, no optimizer)
   - C4.3 constant-time — NOT PROVEN (no leak detected; detection != proof)
-  - C4.4 **KDF validation — NOT PROVEN.** HKDF over HMAC-BLAKE3 is not a
-    standard instantiation; no published vectors apply and none were run.
-    Every hop key, link key and per-hop message id rests on it.
+  - C4.4 **KDF validation — CLOSED.** Migrated to standard HKDF-SHA256
+    (RFC 5869); agrees with the published vectors, with pyca/cryptography,
+    and with Python hashlib/hmac. Functional conformance only.
 - No formal analysis against a model such as Sphinx.
 
 ## 15. Test methodology

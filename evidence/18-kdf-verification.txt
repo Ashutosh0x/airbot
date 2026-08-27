@@ -1,0 +1,26 @@
+
+  C4.4 — KDF DIFFERENTIAL VERIFICATION
+  ==================================================================
+  SHA-256 vs hashlib          : 19/19 lengths match 
+  HMAC-SHA256 vs python hmac  : 5/5 cases match 
+  RFC 5869 published vectors  : 3 cases (PRK + OKM each)
+  Boundary cases              : 8/8 match 
+  Domain separation           : distinct info -> distinct OKM
+  Salt separation             : distinct salt -> distinct OKM
+
+  RESULT: ALL CONFORMANCE CHECKS PASS
+  Scope: functional conformance to FIPS 180-4 / RFC 2104 / RFC 5869.
+  This does NOT establish security or constant-time behaviour.
+
+
+  INDEPENDENT ORACLE (pyca/cryptography, OpenSSL-backed):
+    RFC 5869 A.1 OKM airbot : 3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865
+    RFC 5869 A.1 OKM pyca   : 3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865
+    agree                   : True
+
+  AGAINST THE PUBLISHED RFC 5869 A.1 VALUES:
+    PRK match : True
+    OKM match : True
+
+  Three independent sources agree: this C implementation, an independent
+  library, and the values published in the RFC itself.

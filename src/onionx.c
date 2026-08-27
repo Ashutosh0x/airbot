@@ -5,6 +5,7 @@
 #include "onionx.h"
 #include "x25519.h"
 #include "blake3.h"
+#include "sha256.h"
 #include "chacha20.h"
 
 #include <stdio.h>
@@ -20,58 +21,34 @@ static void ox_secure_zero(void *p, size_t n) {
     while (n--) *v++ = 0;
 }
 
-/* --- HMAC-BLAKE3 / HKDF (RFC 5869) ------------------------ */
+/* --- Key derivation: HKDF-SHA256 (RFC 5869) --------------- */
 
-#define B3_BLOCKSIZE 64
-
-static void hmac_blake3(const uint8_t *key, size_t key_len,
-                        const uint8_t *msg, size_t msg_len,
-                        uint8_t out[32]) {
-    uint8_t k[B3_BLOCKSIZE], ipad[B3_BLOCKSIZE], opad[B3_BLOCKSIZE];
-    uint8_t inner[32];
-    Blake3State st;
-    size_t i;
-
-    memset(k, 0, sizeof(k));
-    if (key_len > B3_BLOCKSIZE) blake3_hash(key, key_len, k);
-    else if (key_len) memcpy(k, key, key_len);
-
-    for (i = 0; i < B3_BLOCKSIZE; i++) {
-        ipad[i] = (uint8_t)(k[i] ^ 0x36);
-        opad[i] = (uint8_t)(k[i] ^ 0x5c);
-    }
-
-    blake3_init(&st);
-    blake3_update(&st, ipad, B3_BLOCKSIZE);
-    blake3_update(&st, msg, msg_len);
-    blake3_finalize(&st, inner);
-
-    blake3_init(&st);
-    blake3_update(&st, opad, B3_BLOCKSIZE);
-    blake3_update(&st, inner, 32);
-    blake3_finalize(&st, out);
-
-    ox_secure_zero(k, sizeof(k));
-    ox_secure_zero(ipad, sizeof(ipad));
-    ox_secure_zero(opad, sizeof(opad));
-}
-
-/* HKDF extract-then-expand, single 32-byte output block. */
+/*
+ * This was previously HKDF's shape over HMAC-BLAKE3. That is NOT a standard
+ * instantiation: no published vector covers it and no second implementation
+ * exists to differentially test against, so its correctness was unverifiable
+ * (blocker C4.4).
+ *
+ * It is now standard HKDF-SHA256. Verified three ways, which must all agree:
+ *   - the published RFC 5869 Appendix A.1-A.3 vectors
+ *   - pyca/cryptography's HKDF (OpenSSL-backed, independent implementation)
+ *   - SHA-256 and HMAC-SHA256 against Python hashlib/hmac across 19 lengths
+ *     and 5 key sizes, including block boundaries and oversized keys
+ * See build/kdf_verify.py and evidence/18-kdf-verification.txt.
+ *
+ * Scope: this establishes FUNCTIONAL CONFORMANCE. It does not establish
+ * security or constant-time behaviour; those remain C4.1 and C4.3.
+ *
+ * Everything above this line is unchanged: same X25519 agreement, same salt
+ * construction, same domain-separation labels, same onion framing and
+ * envelope format. Only the hash underlying the KDF differs, so derived keys
+ * change and builds before/after this commit do not interoperate.
+ */
 static void hkdf32(const uint8_t *ikm, size_t ikm_len,
                    const uint8_t *salt, size_t salt_len,
                    const char *info, uint8_t out[32]) {
-    uint8_t prk[32];
-    uint8_t buf[256];
-    size_t ilen = strlen(info), n = 0;
-
-    hmac_blake3(salt, salt_len, ikm, ikm_len, prk);
-
-    if (ilen > sizeof(buf) - 1) ilen = sizeof(buf) - 1;
-    memcpy(buf, info, ilen); n = ilen;
-    buf[n++] = 0x01;                     /* T(1) counter per RFC 5869 */
-    hmac_blake3(prk, 32, buf, n, out);
-
-    ox_secure_zero(prk, sizeof(prk));
+    hkdf_sha256(salt, salt_len, ikm, ikm_len,
+                (const uint8_t *)info, strlen(info), out, 32);
 }
 
 /*

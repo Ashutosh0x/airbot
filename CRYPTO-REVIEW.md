@@ -4,16 +4,18 @@ This document exists for an external cryptographer. It lists **only** the
 cryptographic surface, what has been verified, and what has not. Everything
 else about the project is deliberately out of scope here.
 
-**Please read the limitations section first.** Three of the four primitives are
-hand-written, and that is the single largest risk in this codebase.
+**Please read the limitations section first.** X25519 and BLAKE3 are
+hand-written and unreviewed; that is the single largest risk in this codebase.
 
-> **KDF correctness and security: NOT PROVEN.**
-> The key derivation is HKDF (RFC 5869 construction) instantiated over
-> HMAC-BLAKE3. That is **not** a standard instantiation, so no published test
-> vectors apply and none have been run. Every onion hop key, link envelope key
-> and per-hop message id depends on it. The fact that BLAKE3 and X25519 pass
-> their own vectors does **not** validate this construction. Treat it as the
-> first thing to review.
+> **KDF: FUNCTIONALLY VERIFIED (was NOT PROVEN).**
+> Key derivation is now standard **HKDF-SHA256 (RFC 5869)**, replacing HKDF's
+> shape over HMAC-BLAKE3 — a bespoke instantiation that no published vector
+> covered and no second implementation could check. It is verified against
+> three independent sources that all agree: the published RFC 5869 A.1–A.3
+> vectors, pyca/cryptography's OpenSSL-backed HKDF, and Python hashlib/hmac
+> for SHA-256 and HMAC-SHA256 across block boundaries and oversized keys.
+> **This establishes functional conformance only** — not security, and not
+> constant-time behaviour (still C4.3).
 
 ---
 
@@ -24,7 +26,8 @@ hand-written, and that is the single largest risk in this codebase.
 | X25519 | **hand-written**, from RFC 7748 + ref10 field arithmetic | `src/x25519.c` | RFC 7748 §6.1 vector; 8/8 random ECDH vs OpenSSL; 10/10 Hamming-weight classes vs OpenSSL |
 | BLAKE3-256 | **hand-written**, from the BLAKE3 spec + reference impl | `src/blake3.c` | 30/30 lengths vs the official `blake3` library, incl. chunk (1023/1024/1025) and Merkle boundaries to 65536 B |
 | ChaCha20-Poly1305 | pre-existing in project | `src/chacha20.c` | RFC 7539 §2.4.2 and RFC 8439 §2.5.2 vectors; 11 negative tests (forgery, truncation, AAD tampering, wrong key/nonce) |
-| HKDF | **hand-written**, RFC 5869 construction over BLAKE3 | `src/onionx.c` (`hkdf32`, `hmac_blake3`) | **No RFC 5869 test vectors run** — HMAC-BLAKE3 is not a standard HKDF instantiation, so published vectors do not apply. **NOT INDEPENDENTLY VERIFIED.** |
+| SHA-256 / HMAC-SHA256 | **hand-written**, FIPS 180-4 / RFC 2104 | `src/sha256.c` | 19/19 lengths vs Python hashlib (incl. 55/56/57/63/64/65 block boundaries); 5/5 HMAC cases vs Python hmac incl. key > blocksize |
+| **HKDF-SHA256** | **hand-written**, RFC 5869 | `src/sha256.c` | RFC 5869 A.1–A.3 published PRK+OKM; pyca/cryptography (OpenSSL) agreement; 8 boundary cases; domain- and salt-separation checks |
 
 A prior `blake3.c` reused the BLAKE3 IV with an ad-hoc compression function
 and **failed the official vectors**. It was removed, not repaired.

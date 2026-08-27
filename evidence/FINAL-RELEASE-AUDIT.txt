@@ -1,3 +1,14 @@
+      C4.4 KDF validation              CLOSED - migrated from HKDF-over-
+           HMAC-BLAKE3 (bespoke, unverifiable) to standard HKDF-SHA256
+           (RFC 5869). Agreement confirmed against three independent
+           sources: the published RFC 5869 A.1-A.3 vectors, pyca/
+           cryptography's OpenSSL-backed HKDF, and Python hashlib/hmac.
+           Scope: FUNCTIONAL CONFORMANCE only - not security, not
+           constant-time. Evidence: evidence/18-kdf-verification.txt.
+           Only the KDF abstraction changed; X25519, onion framing,
+           envelope format and domain labels are untouched. Derived keys
+           differ, so builds across this change do not interoperate.
+
 ================================================================
  AIRBOT — FINAL RELEASE SECURITY AUDIT
  Thu Aug 27 11:58:38 IST 2026
@@ -108,7 +119,7 @@
 
 9. VERDICT: NOT RELEASE-READY
    C1 cleared. C2 PARTIAL (real Tor transport, single-host relays).
-   C3, C4.1-C4.4, C5 done. Largest blocker: C4.
+   C3 open. C4.1/C4.2/C4.3 open; C4.4 CLOSED. C5 done.
 
    Blocking conditions:
    C1 CLEARED. Committed 45349a2 on branch privacy-hardening and tagged
